@@ -1,0 +1,62 @@
+{
+  "name": "syntellite-admin-dashboard-ui",
+  "version": "1.0.0",
+  "description": "Reusable admin dashboard components for React/Next.js applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "admin",
+    "dashboard",
+    "react",
+    "nextjs",
+    "typescript",
+    "tailwindcss",
+    "ui-components"
+  ],
+  "author": "Syntellite",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "next": ">=14.0.0",
+    "tailwindcss": ">=3.0.0",
+    "lucide-react": ">=0.400.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsup": "^8.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/syntellite/admin-dashboard-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/syntellite/admin-dashboard-ui/issues"
+  },
+  "homepage": "https://github.com/syntellite/admin-dashboard-ui#readme"
+}
