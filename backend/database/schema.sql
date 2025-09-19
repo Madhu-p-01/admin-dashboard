@@ -235,3 +235,97 @@ CREATE INDEX IF NOT EXISTS idx_reviews_customer_id ON reviews(customer_id);
 -- Notifications indexes
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status);
+
+
+-- for customer routes
+
+CREATE TABLE IF NOT EXISTS blacklisted_customers (
+    customer_id UUID PRIMARY KEY REFERENCES customers(customer_id) ON DELETE CASCADE,
+    reason TEXT NOT NULL,
+    blacklisted_by UUID REFERENCES admin_members(member_id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS suspended_customers (
+    customer_id UUID PRIMARY KEY REFERENCES customers(customer_id) ON DELETE CASCADE,
+    reason TEXT NOT NULL,
+    suspended_until TIMESTAMP WITH TIME ZONE,
+    suspended_by UUID REFERENCES admin_members(member_id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS loyalty_points_history (
+    transaction_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id UUID NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
+    type VARCHAR(10) CHECK (type IN ('add', 'redeem')) NOT NULL,
+    points INTEGER NOT NULL,
+    reason VARCHAR(255) NOT NULL,
+    admin_id UUID REFERENCES admin_members(member_id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Customer indexes
+CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
+CREATE INDEX IF NOT EXISTS idx_customers_loyalty_points ON customers(loyalty_points);
+CREATE INDEX IF NOT EXISTS idx_customers_created_at ON customers(created_at);
+
+-- Customer status indexes
+CREATE INDEX IF NOT EXISTS idx_blacklisted_customers_created_at ON blacklisted_customers(created_at);
+CREATE INDEX IF NOT EXISTS idx_suspended_customers_created_at ON suspended_customers(created_at);
+CREATE INDEX IF NOT EXISTS idx_suspended_customers_until ON suspended_customers(suspended_until);
+
+-- Loyalty history indexes
+CREATE INDEX IF NOT EXISTS idx_loyalty_history_customer_id ON loyalty_points_history(customer_id);
+CREATE INDEX IF NOT EXISTS idx_loyalty_history_type ON loyalty_points_history(type);
+CREATE INDEX IF NOT EXISTS idx_loyalty_history_created_at ON loyalty_points_history(created_at);
+
+
+INSERT INTO customers (customer_id, name, email, phone, password_hash, loyalty_points, preferences, created_at, updated_at) VALUES
+('550e8400-e29b-41d4-a716-446655440001', 'Ravi Kumar', 'ravi.kumar@example.com', '+91-9876543210', '$2a$10$hashedpasswordexample', 150, '{"newsletter": true, "category_preferences": "clothing"}', '2024-11-01 09:00:00+00', NOW()),
+('550e8400-e29b-41d4-a716-446655440002', 'Anita Sharma', 'anita.sharma@example.com', '+91-9123456789', '$2a$10$hashedpasswordexample', 40, '{"newsletter": false, "category_preferences": "electronics"}', '2025-01-15 14:30:00+00', NOW()),
+('550e8400-e29b-41d4-a716-446655440003', 'Rajesh Patel', 'rajesh.patel@example.com', '+91-9988776655', '$2a$10$hashedpasswordexample', 300, '{"newsletter": true, "category_preferences": "books"}', '2024-08-20 10:15:00+00', NOW()),
+('550e8400-e29b-41d4-a716-446655440004', 'Priya Gupta', 'priya.gupta@example.com', '+91-9555666777', '$2a$10$hashedpasswordexample', 0, '{"newsletter": true, "category_preferences": "home"}', '2025-02-10 16:45:00+00', NOW()),
+('550e8400-e29b-41d4-a716-446655440005', 'Amit Singh', 'amit.singh@example.com', '+91-9444333222', '$2a$10$hashedpasswordexample', 500, '{"newsletter": false, "category_preferences": "sports"}', '2024-06-05 12:30:00+00', NOW());
+
+
+INSERT INTO addresses (address_id, customer_id, name, phone, line1, line2, city, state, postal_code, country, is_default, created_at) VALUES
+('650e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 'Ravi Kumar', '+91-9876543210', '123, MG Road', 'Apartment 2B', 'Delhi', 'Delhi', '110001', 'India', true, NOW()),
+('650e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440002', 'Anita Sharma', '+91-9123456789', '456, Brigade Road', 'Floor 3', 'Bangalore', 'Karnataka', '560001', 'India', true, NOW()),
+('650e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440003', 'Rajesh Patel', '+91-9988776655', '789, Commercial Street', NULL, 'Mumbai', 'Maharashtra', '400001', 'India', true, NOW()),
+('650e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440004', 'Priya Gupta', '+91-9555666777', '321, Park Street', 'Building A', 'Kolkata', 'West Bengal', '700001', 'India', true, NOW()),
+('650e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440005', 'Amit Singh', '+91-9444333222', '654, Residency Road', 'Unit 5', 'Chennai', 'Tamil Nadu', '600001', 'India', true, NOW());
+
+
+INSERT INTO orders (order_id, customer_id, status, total_amount, shipping_address, created_at, updated_at) VALUES
+('750e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 'shipped', 4717.60, '{"name": "Ravi Kumar", "phone": "+91-9876543210", "address": "123, MG Road, Delhi", "pincode": "110001"}', '2025-09-16 10:30:00+00', NOW()),
+('750e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440001', 'delivered', 2499.00, '{"name": "Ravi Kumar", "phone": "+91-9876543210", "address": "123, MG Road, Delhi", "pincode": "110001"}', '2025-09-12 14:20:00+00', NOW()),
+('750e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440001', 'delivered', 1899.50, '{"name": "Ravi Kumar", "phone": "+91-9876543210", "address": "123, MG Road, Delhi", "pincode": "110001"}', '2025-08-28 09:15:00+00', NOW()),
+('750e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440001', 'delivered', 3200.00, '{"name": "Ravi Kumar", "phone": "+91-9876543210", "address": "123, MG Road, Delhi", "pincode": "110001"}', '2025-07-10 11:45:00+00', NOW()),
+('750e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440001', 'cancelled', 1550.00, '{"name": "Ravi Kumar", "phone": "+91-9876543210", "address": "123, MG Road, Delhi", "pincode": "110001"}', '2025-06-15 13:30:00+00', NOW()),
+
+('750e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440002', 'delivered', 1850.00, '{"name": "Anita Sharma", "phone": "+91-9123456789", "address": "456, Brigade Road, Bangalore", "pincode": "560001"}', '2025-08-20 15:10:00+00', NOW()),
+('750e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440002', 'pending', 2150.00, '{"name": "Anita Sharma", "phone": "+91-9123456789", "address": "456, Brigade Road, Bangalore", "pincode": "560001"}', '2025-09-18 10:00:00+00', NOW()),
+
+('750e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440003', 'delivered', 5500.00, '{"name": "Rajesh Patel", "phone": "+91-9988776655", "address": "789, Commercial Street, Mumbai", "pincode": "400001"}', '2025-07-25 12:20:00+00', NOW()),
+('750e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440003', 'shipped', 3200.00, '{"name": "Rajesh Patel", "phone": "+91-9988776655", "address": "789, Commercial Street, Mumbai", "pincode": "400001"}', '2025-09-10 14:15:00+00', NOW()),
+('750e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440003', 'delivered', 4100.00, '{"name": "Rajesh Patel", "phone": "+91-9988776655", "address": "789, Commercial Street, Mumbai", "pincode": "400001"}', '2025-05-18 16:30:00+00', NOW());
+
+
+
+INSERT INTO blacklisted_customers (customer_id, reason, created_at) VALUES
+('550e8400-e29b-41d4-a716-446655440004', 'Fraudulent activity detected during testing', NOW());
+
+  
+INSERT INTO suspended_customers (customer_id, reason, suspended_until, created_at) VALUES
+('550e8400-e29b-41d4-a716-446655440005', 'Multiple failed payment attempts', '2025-10-19 00:00:00+00', NOW());
+
+
+INSERT INTO loyalty_points_history (customer_id, type, points, reason, created_at) VALUES
+('550e8400-e29b-41d4-a716-446655440001', 'add', 50, 'Welcome bonus', '2024-11-01 09:30:00+00'),
+('550e8400-e29b-41d4-a716-446655440001', 'add', 100, 'Order completion bonus', '2025-08-28 10:00:00+00'),
+('550e8400-e29b-41d4-a716-446655440002', 'add', 40, 'Referral bonus', '2025-01-15 15:00:00+00'),
+('550e8400-e29b-41d4-a716-446655440003', 'add', 200, 'Birthday special', '2024-08-20 11:00:00+00'),
+('550e8400-e29b-41d4-a716-446655440003', 'add', 100, 'Order completion bonus', '2025-07-25 13:00:00+00');
