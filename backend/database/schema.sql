@@ -236,6 +236,15 @@ CREATE INDEX IF NOT EXISTS idx_reviews_customer_id ON reviews(customer_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status);
 
+-- Discounts indexes
+CREATE INDEX IF NOT EXISTS idx_discounts_code ON discounts(code);
+CREATE INDEX IF NOT EXISTS idx_discounts_status ON discounts(status);
+CREATE INDEX IF NOT EXISTS idx_discounts_start_date ON discounts(start_date);
+CREATE INDEX IF NOT EXISTS idx_discounts_end_date ON discounts(end_date);
+CREATE INDEX IF NOT EXISTS idx_discount_usage_discount_id ON discount_usage(discount_id);
+CREATE INDEX IF NOT EXISTS idx_discount_usage_order_id ON discount_usage(order_id);
+CREATE INDEX IF NOT EXISTS idx_discount_usage_customer_id ON discount_usage(customer_id);
+
 
 -- for customer routes
 
