@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import productRoutes from './routes/productRoutes';
 import customerRoutes from './routes/customerRoutes';
+import discountRoutes from './routes/discountRoutes';
 
 const app = express();
 const PORT = process.env.PORT;
@@ -16,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api/v1/admin/products', productRoutes);
 app.use('/api/v1/admin/customers', customerRoutes);
+app.use('/api/v1/admin/discounts', discountRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
