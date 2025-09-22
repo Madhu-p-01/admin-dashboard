@@ -1,7 +1,6 @@
 -- Database Schema for E-commerce Platform
 -- Using PostgreSQL
 
-
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 
@@ -338,3 +337,141 @@ INSERT INTO loyalty_points_history (customer_id, type, points, reason, created_a
 ('550e8400-e29b-41d4-a716-446655440002', 'add', 40, 'Referral bonus', '2025-01-15 15:00:00+00'),
 ('550e8400-e29b-41d4-a716-446655440003', 'add', 200, 'Birthday special', '2024-08-20 11:00:00+00'),
 ('550e8400-e29b-41d4-a716-446655440003', 'add', 100, 'Order completion bonus', '2025-07-25 13:00:00+00');
+
+
+-- Content Management System Tables
+
+CREATE TABLE IF NOT EXISTS banners (
+    banner_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    link VARCHAR(500),
+    position VARCHAR(50) DEFAULT 'homepage_top' CHECK (position IN ('homepage_top', 'homepage_middle', 'homepage_bottom', 'category_top', 'category_sidebar', 'product_detail')),
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'draft')),
+    start_date TIMESTAMP WITH TIME ZONE,
+    end_date TIMESTAMP WITH TIME ZONE,
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS cms_pages (
+    page_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    content TEXT NOT NULL,
+    meta_title VARCHAR(255),
+    meta_description TEXT,
+    status VARCHAR(20) DEFAULT 'published' CHECK (status IN ('published', 'draft', 'archived')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS blog_posts (
+    post_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    content TEXT NOT NULL,
+    excerpt TEXT,
+    featured_image VARCHAR(500),
+    author VARCHAR(100) DEFAULT 'Admin',
+    tags TEXT[],
+    meta_title VARCHAR(255),
+    meta_description TEXT,
+    status VARCHAR(20) DEFAULT 'published' CHECK (status IN ('published', 'draft', 'archived')),
+    is_featured BOOLEAN DEFAULT FALSE,
+    published_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS faqs (
+    faq_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    category VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS policies (
+    policy_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    policy_type VARCHAR(50) CHECK (policy_type IN ('return', 'privacy', 'shipping', 'terms', 'refund', 'other')),
+    status VARCHAR(20) DEFAULT 'published' CHECK (status IN ('published', 'draft', 'archived')),
+    version VARCHAR(10) DEFAULT '1.0',
+    effective_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS announcements (
+    announcement_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    message TEXT NOT NULL,
+    type VARCHAR(20) DEFAULT 'info' CHECK (type IN ('info', 'warning', 'success', 'error', 'promo')),
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'scheduled')),
+    start_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    end_date TIMESTAMP WITH TIME ZONE,
+    display_on TEXT[] DEFAULT '{"homepage", "checkout"}',
+    priority INTEGER DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS media_library (
+    media_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    filename VARCHAR(255) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    url VARCHAR(500) NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    file_size INTEGER,
+    mime_type VARCHAR(100),
+    alt_text VARCHAR(255),
+    description TEXT,
+    uploaded_by UUID REFERENCES admin_members(member_id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Content Management Indexes
+CREATE INDEX IF NOT EXISTS idx_banners_status ON banners(status);
+CREATE INDEX IF NOT EXISTS idx_banners_position ON banners(position);
+CREATE INDEX IF NOT EXISTS idx_banners_start_date ON banners(start_date);
+CREATE INDEX IF NOT EXISTS idx_banners_end_date ON banners(end_date);
+CREATE INDEX IF NOT EXISTS idx_banners_display_order ON banners(display_order);
+
+CREATE INDEX IF NOT EXISTS idx_cms_pages_slug ON cms_pages(slug);
+CREATE INDEX IF NOT EXISTS idx_cms_pages_status ON cms_pages(status);
+CREATE INDEX IF NOT EXISTS idx_cms_pages_created_at ON cms_pages(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_status ON blog_posts(status);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_published_at ON blog_posts(published_at);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_is_featured ON blog_posts(is_featured);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_tags ON blog_posts USING GIN(tags);
+
+CREATE INDEX IF NOT EXISTS idx_faqs_status ON faqs(status);
+CREATE INDEX IF NOT EXISTS idx_faqs_category ON faqs(category);
+CREATE INDEX IF NOT EXISTS idx_faqs_display_order ON faqs(display_order);
+
+CREATE INDEX IF NOT EXISTS idx_policies_policy_type ON policies(policy_type);
+CREATE INDEX IF NOT EXISTS idx_policies_status ON policies(status);
+CREATE INDEX IF NOT EXISTS idx_policies_effective_date ON policies(effective_date);
+
+CREATE INDEX IF NOT EXISTS idx_announcements_status ON announcements(status);
+CREATE INDEX IF NOT EXISTS idx_announcements_type ON announcements(type);
+CREATE INDEX IF NOT EXISTS idx_announcements_start_date ON announcements(start_date);
+CREATE INDEX IF NOT EXISTS idx_announcements_end_date ON announcements(end_date);
+CREATE INDEX IF NOT EXISTS idx_announcements_priority ON announcements(priority);
+
+CREATE INDEX IF NOT EXISTS idx_media_library_file_type ON media_library(file_type);
+CREATE INDEX IF NOT EXISTS idx_media_library_uploaded_by ON media_library(uploaded_by);
+CREATE INDEX IF NOT EXISTS idx_media_library_created_at ON media_library(created_at);
