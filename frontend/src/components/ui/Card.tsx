@@ -1,53 +1,82 @@
-import { PropsWithChildren } from 'react'
+import * as React from "react";
+import { cn } from "../../lib/utils";
 
-export function Card({ children }: PropsWithChildren) {
-	return <div className="card">{children}</div>
-}
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-xl border bg-card text-card-foreground shadow",
+      className,
+    )}
+    {...props}
+  />
+));
+Card.displayName = "Card";
 
-export function StatCard({ label, value, delta }: { label: string; value: string | number; delta?: string }) {
-	return (
-		<div className="card stat" style={{ 
-			display: 'flex', 
-			flexDirection: 'column', 
-			gap: '8px',
-			position: 'relative',
-			overflow: 'hidden'
-		}}>
-			<div style={{ 
-				position: 'absolute', 
-				top: '16px', 
-				right: '16px', 
-				width: '40px', 
-				height: '40px', 
-				borderRadius: '50%', 
-				backgroundColor: 'var(--primary)', 
-				opacity: 0.1,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				fontSize: '20px'
-			}}>
-				{label === 'Net Income' && '⚙️'}
-				{label === 'Total Revenue' && '📊'}
-				{label === 'Orders' && '🛒'}
-				{label === 'Conversion' && '🔄'}
-			</div>
-			<span className="label">{label}</span>
-			<span className="value">{value}</span>
-			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-				{delta ? <span className="delta">{delta}</span> : null}
-				<a href="#" style={{ 
-					fontSize: '12px', 
-					color: 'var(--primary)', 
-					textDecoration: 'none',
-					fontWeight: '500'
-				}}>View report</a>
-			</div>
-		</div>
-	)
-}
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+));
+CardHeader.displayName = "CardHeader";
 
+const CardTitle = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("font-semibold leading-none tracking-tight", className)}
+    {...props}
+  />
+));
+CardTitle.displayName = "CardTitle";
 
+const CardDescription = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+));
+CardDescription.displayName = "CardDescription";
 
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+));
+CardContent.displayName = "CardContent";
 
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+));
+CardFooter.displayName = "CardFooter";
 
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+};
