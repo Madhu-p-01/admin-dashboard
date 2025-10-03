@@ -10,7 +10,7 @@ export class ApiClient {
 	private accessToken: string | null
 
 	constructor(options?: ApiClientOptions) {
-		this.baseUrl = options?.baseUrl ?? (import.meta.env.VITE_API_BASE_URL as string) ?? 'http://localhost:3000'
+		this.baseUrl = options?.baseUrl ?? (import.meta.env.VITE_API_BASE_URL as string) ?? 'http://localhost:4000'
 		this.accessToken = options?.accessToken ?? null
 	}
 

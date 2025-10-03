@@ -76,7 +76,7 @@ export default function Discounts() {
 	})
 
 	const discounts = data?.data || []
-	const meta = data?.meta
+	const meta = data?.data.meta
 	const totalPages = useMemo(() => meta?.totalPages || 1, [meta])
 
 	const tabs = [

@@ -35,7 +35,7 @@ export default function Products() {
 	}, [])
 
 	const { data, loading, error } = useApi<{ data: PaginatedResult<Product> }>({
-		path: '/products',
+		path: '/api/v1/admin/products',
 		params: { 
 			page, 
 			limit, 
@@ -50,12 +50,12 @@ export default function Products() {
 
 	// Categories
 	const { data: categoriesData, loading: categoriesLoading } = useApi<any>({
-		path: '/products/categories',
+		path: '/api/v1/admin/products/categories',
 		transform: useCallback((res: ApiResponse<any>) => (res as any).data, [])
 	})
 
-	const products = data?.data || []
-	const meta = data?.meta
+	const products = data?.data?.data || []
+	const meta = data?.data?.meta
 	const categories = categoriesData || []
 	const totalPages = useMemo(() => meta?.totalPages || 1, [meta])
 
@@ -69,7 +69,7 @@ export default function Products() {
 
 	const handleCreateProduct = async () => {
 		try {
-			await api.request('/products', 'POST', formData)
+			await api.request('/api/v1/admin/products', 'POST', formData)
 			setShowForm(false)
 			setFormData({
 				name: '',
@@ -92,7 +92,7 @@ export default function Products() {
 
 	const handleUpdateProduct = async (id: string) => {
 		try {
-			await api.request(`/products/${id}`, 'PUT', formData)
+			await api.request(`/api/v1/admin/products/${id}`, 'PUT', formData)
 			setShowForm(false)
 			setEditingProduct(null)
 			// Refresh the list
@@ -105,7 +105,7 @@ export default function Products() {
 	const handleDeleteProduct = async (id: string) => {
 		if (confirm('Are you sure you want to delete this product?')) {
 			try {
-				await api.request(`/products/${id}`, 'DELETE')
+				await api.request(`/api/v1/admin/products/${id}`, 'DELETE')
 				// Refresh the list
 				window.location.reload()
 			} catch (error) {
@@ -116,7 +116,7 @@ export default function Products() {
 
 	const handleUpdateStatus = async (id: string, newStatus: string) => {
 		try {
-			await api.request(`/products/${id}/status`, 'PUT', { status: newStatus })
+			await api.request(`/api/v1/admin/products/${id}/status`, 'PUT', { status: newStatus })
 			// Refresh the list
 			window.location.reload()
 		} catch (error) {
@@ -126,7 +126,7 @@ export default function Products() {
 
 	const handleToggleFeatured = async (id: string, isFeatured: boolean) => {
 		try {
-			await api.request(`/products/${id}/feature`, 'PUT', { isFeatured })
+			await api.request(`/api/v1/admin/products/${id}/feature`, 'PUT', { isFeatured })
 			// Refresh the list
 			window.location.reload()
 		} catch (error) {
@@ -136,7 +136,7 @@ export default function Products() {
 
 	const handleUpdateInventory = async (id: string, stock: number) => {
 		try {
-			await api.request(`/products/${id}/inventory`, 'PUT', { stock })
+			await api.request(`/api/v1/admin/products/${id}/inventory`, 'PUT', { stock })
 			// Refresh the list
 			window.location.reload()
 		} catch (error) {
@@ -146,7 +146,7 @@ export default function Products() {
 
 	const handleUpdatePrice = async (id: string, price: number) => {
 		try {
-			await api.request(`/products/${id}/price`, 'PUT', { price })
+			await api.request(`/api/v1/admin/products/${id}/price`, 'PUT', { price })
 			// Refresh the list
 			window.location.reload()
 		} catch (error) {
@@ -214,7 +214,7 @@ export default function Products() {
 							{products.map((product) => (
 								<tr key={product.product_id} style={{ borderTop: '1px solid #1e2733' }}>
 									<td>{product.name}</td>
-									<td>{product.category || 'N/A'}</td>
+									<td>{product.category_id || 'N/A'}</td>
 									<td>{product.currency} {product.price}</td>
 									<td>{product.stock}</td>
 									<td>
@@ -230,16 +230,16 @@ export default function Products() {
 									</td>
 									<td>
 										<button 
-											onClick={() => handleToggleFeatured(product.product_id, !product.isFeatured)}
+											onClick={() => handleToggleFeatured(product.product_id, !product.is_featured)}
 											style={{ 
 												padding: 4, 
-												background: product.isFeatured ? '#10b981' : '#6b7280',
+												background: product.is_featured ? '#10b981' : '#6b7280',
 												color: 'white',
 												border: 'none',
 												borderRadius: 4
 											}}
 										>
-											{product.isFeatured ? 'Featured' : 'Not Featured'}
+											{product.is_featured ? 'Featured' : 'Not Featured'}
 										</button>
 									</td>
 									<td>
@@ -249,11 +249,11 @@ export default function Products() {
 												setFormData({
 													name: product.name,
 													description: product.description || '',
-													category: product.category || '',
+													category: product.category_id || '',
 													price: product.price,
 													currency: product.currency || 'INR',
 													stock: product.stock,
-													status: product.status || 'active',
+													status: (product.status as 'active' | 'inactive' | 'draft') || 'active',
 													sizes: product.sizes || [],
 													colors: product.colors || [],
 													images: product.images || []

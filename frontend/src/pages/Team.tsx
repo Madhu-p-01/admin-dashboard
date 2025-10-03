@@ -18,8 +18,8 @@ export default function Team() {
 		transform
 	})
 
-	const teamMembers = data?.data || []
-	const meta = data?.meta
+	const teamMembers = data?.data?.data || []
+	const meta = data?.data?.meta
 	const totalPages = meta?.totalPages || 1
 
 	// Debug logging

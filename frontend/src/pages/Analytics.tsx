@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useApi } from '@/lib/useApi'
-import type { ApiResponse, AnalyticsData } from '@/types/api'
+import type { ApiResponse } from '@/types/api'
 
 export default function Analytics() {
 	const [activeTab, setActiveTab] = useState('overview')
@@ -9,13 +9,13 @@ export default function Analytics() {
 	const [toDate, setToDate] = useState('')
 
 	// Dashboard Overview
-	const overviewTransform = useCallback((res: ApiResponse<AnalyticsData>) => {
+	const overviewTransform = useCallback((res: ApiResponse<any>) => {
 		if ((res as any).success === false) throw new Error((res as any).message)
 		return (res as any).data
 	}, [])
 
-	const { data: overviewData, loading: overviewLoading, error: overviewError } = useApi<AnalyticsData>({
-		path: '/analytics/dashboard/overview',
+	const { data: overviewData, loading: overviewLoading, error: overviewError } = useApi<any>({
+		path: '/api/v1/admin/analytics/dashboard/overview',
 		params: { period: dateRange },
 		transform: overviewTransform
 	})
@@ -27,7 +27,7 @@ export default function Analytics() {
 	}, [])
 
 	const { data: salesData, loading: salesLoading, error: salesError } = useApi<any>({
-		path: '/analytics/sales',
+		path: '/api/v1/admin/analytics/sales',
 		params: { 
 			from: fromDate || undefined, 
 			to: toDate || undefined, 
@@ -38,7 +38,7 @@ export default function Analytics() {
 
 	// Product Performance
 	const { data: productData, loading: productLoading, error: productError } = useApi<any>({
-		path: '/analytics/products/performance',
+		path: '/api/v1/admin/analytics/products/performance',
 		params: { 
 			from: fromDate || undefined, 
 			to: toDate || undefined, 
@@ -50,7 +50,7 @@ export default function Analytics() {
 
 	// Order Insights
 	const { data: orderData, loading: orderLoading, error: orderError } = useApi<any>({
-		path: '/analytics/orders/insights',
+		path: '/api/v1/admin/analytics/orders/insights',
 		params: { 
 			from: fromDate || undefined, 
 			to: toDate || undefined
@@ -60,7 +60,7 @@ export default function Analytics() {
 
 	// Customer Insights
 	const { data: customerData, loading: customerLoading, error: customerError } = useApi<any>({
-		path: '/analytics/customers/insights',
+		path: '/api/v1/admin/analytics/customers/insights',
 		params: { 
 			from: fromDate || undefined, 
 			to: toDate || undefined
@@ -70,13 +70,13 @@ export default function Analytics() {
 
 	// Inventory Insights
 	const { data: inventoryData, loading: inventoryLoading, error: inventoryError } = useApi<any>({
-		path: '/analytics/inventory/insights',
+		path: '/api/v1/admin/analytics/inventory/insights',
 		transform: salesTransform
 	})
 
 	// Traffic Insights
 	const { data: trafficData, loading: trafficLoading, error: trafficError } = useApi<any>({
-		path: '/analytics/traffic',
+		path: '/api/v1/admin/analytics/traffic',
 		params: { 
 			from: fromDate || undefined, 
 			to: toDate || undefined
@@ -86,7 +86,7 @@ export default function Analytics() {
 
 	// Refunds Report
 	const { data: refundsData, loading: refundsLoading, error: refundsError } = useApi<any>({
-		path: '/analytics/refunds',
+		path: '/api/v1/admin/analytics/refunds',
 		params: { 
 			from: fromDate || undefined, 
 			to: toDate || undefined
@@ -273,7 +273,13 @@ export default function Analytics() {
 			
 			{/* Date Range Controls */}
 			<div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-				<select value={dateRange} onChange={(e) => setDateRange(e.target.value)}>
+				<label htmlFor="date-range-select" style={{ display: 'none' }}>Select date range</label>
+				<select
+					id="date-range-select"
+					title="Select date range"
+					value={dateRange}
+					onChange={(e) => setDateRange(e.target.value)}
+				>
 					<option value="7d">Last 7 days</option>
 					<option value="30d">Last 30 days</option>
 					<option value="90d">Last 90 days</option>
