@@ -127,7 +127,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
         />
         
         {/* Page Content */}
-        <main className="flex-1">
+        <main className="flex-1 bg-gray-50">
           {children}
         </main>
       </div>

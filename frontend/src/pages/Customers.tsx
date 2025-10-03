@@ -1,689 +1,656 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState } from 'react';
 import { AdminLayout } from '../components/layouts/AdminLayout';
-import { FilterPill } from '../components/ui/FilterPill';
-import { StatCard } from '../components/ui/StatCard';
-import { StatusBadge } from '../components/ui/StatusBadge';
-import { CustomAvatar } from '../components/ui/CustomAvatar';
-import { ActionButtons } from '../components/ui/ActionButtons';
-import { SearchBar } from '../components/ui/SearchBar';
-import { DataTable } from '../components/ui/DataTable';
-import { PageHeader } from '../components/ui/PageHeader';
-import { Icon } from '../components/ui/Icon';
-import { api } from '../lib/api';
-import { useApi } from '../lib/useApi';
+import { NewCustomerForm } from '../components/forms/NewCustomerForm';
 
-// Add missing ApiResponse type
-type ApiResponse<T = any> = {
-  success: boolean;
-  message?: string;
-  data: T;
-};
-
-// Add missing PaginatedResult type
-type PaginatedResult<T> = {
-  data: T[];
-  meta: {
-	total: number;
-	page: number;
-	limit: number;
-	totalPages: number;
-  };
-};
-
-// Type for customer list items
-export type CustomerListItem = {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  ordersCount?: number;
-  totalSpent?: number;
-  status?: 'active' | 'inactive' | 'blacklisted' | 'suspended';
-  createdAt?: string;
-  lastOrderDate?: string;
-  avgOrderValue?: number;
-  loyaltyPoints?: number;
-  loyaltyTier?: string;
-  lifetimeValue?: number;
-};
-
- // Mock customer data
-const customers = [
+// Extended customer data with full profile information
+const customersData = [
   {
     id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+91 98765 43210',
-    orders: 12,
-    totalSpent: '₹25,670',
-    status: 'Active',
-    statusColor: '#10b981',
-    joinDate: 'Jan 15, 2024',
-    avatar: 'JD',
-    avatarColor: '#3b82f6'
+    name: 'Jane Smith',
+    email: 'Subscribed',
+    emailAddress: 'name@hh.c',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: [
+      {
+        id: 'o1',
+        productName: 'Product Name',
+        image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80',
+        size: 'XL',
+        color: 'Black',
+        orderDate: '11/11/2020',
+        deliveredDate: 'Processing',
+        totalPrice: '$1000'
+      },
+      {
+        id: 'o2',
+        productName: 'Product Name',
+        image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80',
+        size: 'XL',
+        color: 'Black',
+        orderDate: '11/11/2020',
+        deliveredDate: '11/11/2020',
+        totalPrice: '$1000'
+      },
+      {
+        id: 'o3',
+        productName: 'Product Name',
+        image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80',
+        size: 'XL',
+        color: 'Black',
+        orderDate: '11/11/2020',
+        deliveredDate: '11/11/2020',
+        totalPrice: '$1000'
+      }
+    ]
   },
   {
     id: '2',
-    name: 'Sarah Wilson',
-    email: 'sarah.w@example.com',
-    phone: '+91 87654 32109',
-    orders: 8,
-    totalSpent: '₹18,420',
-    status: 'Active',
-    statusColor: '#10b981',
-    joinDate: 'Feb 20, 2024',
-    avatar: 'SW',
-    avatarColor: '#f59e0b'
+    name: 'Aisha Sharma',
+    email: 'Unsubscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
   },
   {
     id: '3',
-    name: 'Mike Johnson',
-    email: 'mike.j@example.com',
-    phone: '+91 76543 21098',
-    orders: 5,
-    totalSpent: '₹12,350',
-    status: 'Inactive',
-    statusColor: '#6b7280',
-    joinDate: 'Mar 10, 2024',
-    avatar: 'MJ',
-    avatarColor: '#8b5cf6'
+    name: 'Aisha Sharma',
+    email: 'Subscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
   },
   {
     id: '4',
-    name: 'Emma Davis',
-    email: 'emma.d@example.com',
-    phone: '+91 65432 10987',
-    orders: 15,
-    totalSpent: '₹32,800',
-    status: 'VIP',
-    statusColor: '#f59e0b',
-    joinDate: 'Dec 05, 2023',
-    avatar: 'ED',
-    avatarColor: '#ef4444'
+    name: 'Aisha Sharma',
+    email: 'Unsubscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
   },
   {
     id: '5',
-    name: 'David Brown',
-    email: 'david.b@example.com',
-    phone: '+91 54321 09876',
-    orders: 3,
-    totalSpent: '₹8,750',
-    status: 'New',
-    statusColor: '#3b82f6',
-    joinDate: 'Apr 22, 2024',
-    avatar: 'DB',
-    avatarColor: '#10b981'
+    name: 'Aisha Sharma',
+    email: 'Subscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
   },
+  {
+    id: '6',
+    name: 'Aisha Sharma',
+    email: 'Unsubscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
+  },
+  {
+    id: '7',
+    name: 'Aisha Sharma',
+    email: 'Subscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
+  },
+  {
+    id: '8',
+    name: 'Aisha Sharma',
+    email: 'Unsubscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
+  },
+  {
+    id: '9',
+    name: 'Aisha Sharma',
+    email: 'Subscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
+  },
+  {
+    id: '10',
+    name: 'Aisha Sharma',
+    email: 'Unsubscribed',
+    emailAddress: 'aisha@example.com',
+    phone: '+91 8877886677',
+    language: 'English',
+    location: 'Bengaluru KA, India',
+    orders: '2 orders',
+    amountSpent: '₹1200.50',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    shippingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    billingAddress: '#212 Bank road, Gottigere, B.G road, Bangalore - 560083',
+    orderHistory: []
+  }
 ];
 
-export default function Customers() {
-	const [activeTab, setActiveTab] = useState('list')
-	const [page, setPage] = useState(1)
-	const [limit] = useState(10)
-	const [search, setSearch] = useState('')
-	const [status, setStatus] = useState('')
-	const [sort, setSort] = useState('latest')
-	const [minOrders, setMinOrders] = useState('')
-	const [minSpent, setMinSpent] = useState('')
+export default function CustomersPage() {
+  const [selectedCustomer, setSelectedCustomer] = useState<typeof customersData[0] | null>(null);
+  const [view, setView] = useState<'table' | 'profile' | 'new-customer'>('table');
+  const [activeTab, setActiveTab] = useState<'order-history' | 'wishlist' | 'reviews' | 'note'>('order-history');
 
-	// Customer Form State
-	const [showForm, setShowForm] = useState(false)
-	const [editingCustomer, setEditingCustomer] = useState<CustomerListItem | null>(null)
-	const [formData, setFormData] = useState({
-		name: '',
-		phone: '',
-		status: 'active' as 'active' | 'inactive' | 'blacklisted' | 'suspended'
-	})
+  const handleCustomerClick = (customer: typeof customersData[0]) => {
+    setSelectedCustomer(customer);
+    setView('profile');
+    setActiveTab('order-history');
+  };
 
-	// Customer Details State
-	const [selectedCustomer, setSelectedCustomer] = useState<CustomerListItem | null>(null)
-	const [customerDetails, setCustomerDetails] = useState<any>(null)
-	const [customerOrders, setCustomerOrders] = useState<any[]>([])
+  const handleNewCustomer = () => {
+    setView('new-customer');
+  };
 
-	// Loyalty Points State
-	const [loyaltyPoints, setLoyaltyPoints] = useState('')
-	const [loyaltyReason, setLoyaltyReason] = useState('')
+  const handleBackToTable = () => {
+    setView('table');
+    setSelectedCustomer(null);
+  };
 
-	const transform = useCallback((res: ApiResponse<{ data: PaginatedResult<CustomerListItem> }>) => {
-		if ((res as any).success === false) throw new Error((res as any).message)
-		return (res as any).data
-	}, [])
+  const handleBack = () => {
+    setView('table');
+    setSelectedCustomer(null);
+    setActiveTab('order-history');
+  };
 
-	const { data, loading, error } = useApi<{ data: PaginatedResult<CustomerListItem> }>({
-		path: '/api/v1/admin/customers',
-		params: { 
-			page, 
-			limit, 
-			search: search || undefined,
-			status: status || undefined,
-			sort,
-			minOrders: minOrders || undefined,
-			minSpent: minSpent || undefined
-		},
-		transform
-	})
+  return (
+    <AdminLayout title="Customers">
+      <div className="bg-gray-50 min-h-screen">
+        {/* Combined Search/Table and Profile Container */}
+        <div className="mx-6 mt-6 mb-6">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+            
+            {/* Table View */}
+            {view === 'table' && (
+              <>
+                {/* Search and Controls */}
+                 <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center gap-4">
+                {/* Search Bar */}
+                <div className="relative flex-1">
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none text-sm"
+                  />
+                </div>
 
-	// Customer Segments
-	const { data: segmentsData, loading: segmentsLoading } = useApi<any>({
-		path: '/api/v1/admin/customers/segments',
-		transform: useCallback((res: ApiResponse<any>) => (res as any).data, [])
-	})
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <button 
+                    className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg text-sm"
+                    title="Filter"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                  </button>
+                  <button 
+                    className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg text-sm"
+                    title="Sort"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </button>
+                  <button className="px-4 py-2.5 text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg text-sm font-medium">
+                    Import
+                  </button>
+                  <button className="px-4 py-2.5 text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg text-sm font-medium">
+                    Export
+                  </button>
+                  <button 
+                    onClick={handleNewCustomer}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-white text-black hover:bg-black hover:text-white border border-gray-300 rounded-lg text-sm font-medium transition-colors"
+                    title="Add new discount"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Customer</span>
+                  </button>
+                </div>
+              </div>
+            </div>
 
-	const customers = data?.data?.data || []
-	const meta = data?.data?.meta
-	const segments = segmentsData || []
-	const totalPages = useMemo(() => meta?.totalPages || 1, [meta])
+            {/* Table */}
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-100 border-b border-gray-200">
+                      <th className="px-6 py-3 text-left text-sm font-medium text-black">
+                        Customer Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-black">
+                        Email Subscription
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-black">
+                        Location
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-black">
+                        Orders
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-black">
+                        Amount Spent
+                      </th>
+                    </tr>
+                  </thead>
+                <tbody>
+                  {customersData.map((customer, index) => (
+                    <tr 
+                      key={customer.id} 
+                      onClick={() => handleCustomerClick(customer)}
+                      className={`border-b border-gray-100 last:border-b-0 cursor-pointer ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-100'
+                      } hover:bg-gray-200 transition-colors`}
+                    >
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {customer.name}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            customer.email === 'Subscribed' ? 'bg-green-500' : 'bg-red-500'
+                          }`}></div>
+                          <span className="text-sm text-gray-600">{customer.email}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {customer.location}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {customer.orders}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                        {customer.amountSpent}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              </div>
+            </div>
+              </>
+            )}
 
-	const tabs = [
-		{ id: 'list', label: 'All Customers' },
-		{ id: 'search', label: 'Search Customers' },
-		{ id: 'segments', label: 'Customer Segments' },
-		{ id: 'loyalty', label: 'Loyalty Management' },
-		{ id: 'export', label: 'Export Customers' }
-	]
+            {/* Profile View */}
+            {view === 'profile' && selectedCustomer && (
+              <div className="p-6">
+                {/* Back Button */}
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="text-sm font-medium">Customer Profile</span>
+                </button>
 
-	const handleUpdateCustomer = async (id: string) => {
-		try {
-			await api.request(`/api/v1/admin/customers/${id}`, 'PUT', formData)
-			setShowForm(false)
-			setEditingCustomer(null)
-			// Refresh the list
-			window.location.reload()
-		} catch (error) {
-			console.error('Error updating customer:', error)
-		}
-	}
+                {/* Customer Info Card - Centered */}
+                <div className="bg-white border border-gray-200 rounded-lg p-8 mb-6">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex-1"></div>
+                    {/* Action Icons */}
+                    <div className="flex items-center gap-2">
+                      <button className="p-2 text-gray-400 hover:text-gray-600" title="Edit">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-red-600" title="Delete">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
 
-	const handleDeleteCustomer = async (id: string) => {
-		if (confirm('Are you sure you want to delete this customer?')) {
-			try {
-				await api.request(`/api/v1/admin/customers/${id}`, 'DELETE')
-				// Refresh the list
-				window.location.reload()
-			} catch (error) {
-				console.error('Error deleting customer:', error)
-			}
-		}
-	}
+                  <div className="flex items-start gap-16 max-w-3xl mx-auto">
+                    {/* Avatar - Left */}
+                    <div className="flex-shrink-0 text-center">
+                      <img
+                        src={selectedCustomer.avatar}
+                        alt={selectedCustomer.name}
+                        className="w-40 h-40 rounded-full object-cover mx-auto"
+                      />
+                      <p className="text-center font-semibold text-gray-900 mt-4 text-base">{selectedCustomer.name}</p>
+                    </div>
 
-	const handleUpdateStatus = async (id: string, newStatus: string, reason?: string) => {
-		try {
-			await api.request(`/api/v1/admin/customers/${id}/status`, 'PUT', { 
-				status: newStatus,
-				reason: reason || undefined
-			})
-			// Refresh the list
-			window.location.reload()
-		} catch (error) {
-			console.error('Error updating status:', error)
-		}
-	}
+                    {/* Customer Details - Right */}
+                    <div className="flex-1 space-y-5 pt-2">
+                      <div className="flex items-start">
+                        <p className="text-sm font-semibold text-gray-900 w-40">Email</p>
+                        <p className="text-sm text-gray-600 flex-1">{selectedCustomer.emailAddress}</p>
+                      </div>
+                      <div className="flex items-start">
+                        <p className="text-sm font-semibold text-gray-900 w-40">Phone</p>
+                        <p className="text-sm text-gray-600 flex-1">{selectedCustomer.phone}</p>
+                      </div>
+                      <div className="flex items-start">
+                        <p className="text-sm font-semibold text-gray-900 w-40">Language</p>
+                        <p className="text-sm text-gray-600 flex-1">{selectedCustomer.language}</p>
+                      </div>
+                      <div className="flex items-start">
+                        <p className="text-sm font-semibold text-gray-900 w-40">Shipping Address</p>
+                        <p className="text-sm text-gray-600 leading-relaxed flex-1">{selectedCustomer.shippingAddress}</p>
+                      </div>
+                      <div className="flex items-start">
+                        <p className="text-sm font-semibold text-gray-900 w-40">Billing Address</p>
+                        <p className="text-sm text-gray-600 leading-relaxed flex-1">{selectedCustomer.billingAddress}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-	const handleGetCustomerDetails = async (customer: CustomerListItem) => {
-		try {
-			const details = await api.request(`/api/v1/admin/customers/${customer.id}`, 'GET')
-			const orders = await api.request(`/api/v1/admin/customers/${customer.id}/orders`, 'GET')
-			setCustomerDetails(details)
-			setCustomerOrders(orders as any[])
-			setSelectedCustomer(customer)
-		} catch (error) {
-			console.error('Error fetching customer details:', error)
-		}
-	}
+                {/* Tabs */}
+                <div className="border-b border-gray-200 mb-6">
+                  <div className="flex gap-8">
+                    <button
+                      onClick={() => setActiveTab('order-history')}
+                      className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'order-history'
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      Order History
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('wishlist')}
+                      className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'wishlist'
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      Wishlist
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('reviews')}
+                      className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'reviews'
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      Reviews
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('note')}
+                      className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'note'
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      Note
+                    </button>
+                  </div>
+                </div>
 
-	const handleAddLoyaltyPoints = async (customerId: string) => {
-		try {
-			await api.request(`/api/v1/admin/customers/${customerId}/loyalty/add`, 'POST', {
-				points: parseInt(loyaltyPoints),
-				reason: loyaltyReason
-			})
-			setLoyaltyPoints('')
-			setLoyaltyReason('')
-			// Refresh customer details
-			if (selectedCustomer) {
-				handleGetCustomerDetails(selectedCustomer)
-			}
-		} catch (error) {
-			console.error('Error adding loyalty points:', error)
-		}
-	}
+                {/* Tab Content */}
+                {/* Order History Tab */}
+                {activeTab === 'order-history' && (
+                  <div className="space-y-4">
+                    {selectedCustomer.orderHistory.map((order) => (
+                      <div
+                        key={order.id}
+                        className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-4"
+                      >
+                        {/* Product Image */}
+                        <div className="relative flex-shrink-0">
+                          <img
+                            src={order.image}
+                            alt={order.productName}
+                            className="w-24 h-24 object-cover rounded"
+                          />
+                          {order.deliveredDate === 'Processing' && (
+                            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
 
-	const handleRedeemLoyaltyPoints = async (customerId: string) => {
-		try {
-			await api.request(`/api/v1/admin/customers/${customerId}/loyalty/redeem`, 'POST', {
-				points: parseInt(loyaltyPoints),
-				reason: loyaltyReason
-			})
-			setLoyaltyPoints('')
-			setLoyaltyReason('')
-			// Refresh customer details
-			if (selectedCustomer) {
-				handleGetCustomerDetails(selectedCustomer)
-			}
-		} catch (error) {
-			console.error('Error redeeming loyalty points:', error)
-		}
-	}
+                        {/* Order Details */}
+                        <div className="flex-1 grid grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{order.productName}</p>
+                            <p className="text-xs text-gray-500 mt-1">Size: {order.size}</p>
+                            <p className="text-xs text-gray-500">Color: {order.color}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Order Date: {order.orderDate}</p>
+                            <p className={`text-xs mt-1 ${
+                              order.deliveredDate === 'Processing' ? 'text-green-600' : 'text-gray-500'
+                            }`}>
+                              Delivered Date: {order.deliveredDate}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-900">Total Price: {order.totalPrice}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
 
-	const handleExportCustomers = async (format: string) => {
-		try {
-			const response = await api.request(`/api/v1/admin/customers/export?format=${format}`, 'GET')
-			// Handle file download
-			console.log('Export response:', response)
-			alert(`Customers exported as ${format.toUpperCase()}`)
-		} catch (error) {
-			console.error('Error exporting customers:', error)
-		}
-	}
+                    {/* Pagination */}
+                    {selectedCustomer.orderHistory.length > 0 && (
+                      <div className="flex items-center justify-center gap-3 mt-6">
+                        <button className="p-2 text-gray-400 hover:text-gray-600" title="Previous">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <button className="p-2 text-gray-400 hover:text-gray-600" title="Next">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-	const renderCustomerList = () => (
-		<div>
-			{/* Filters */}
-			<div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-				<input
-					type="text"
-					placeholder="Search customers..."
-					value={search}
-					onChange={(e) => setSearch(e.target.value)}
-					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white' }}
-				/>
-				<label htmlFor="customer-status-select" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
-					Customer Status
-				</label>
-				<select
-					id="customer-status-select"
-					aria-label="Customer Status"
-					value={status}
-					onChange={(e) => setStatus(e.target.value)}
-				>
-					<option value="">All Status</option>
-					<option value="active">Active</option>
-					<option value="inactive">Inactive</option>
-					<option value="blacklisted">Blacklisted</option>
-					<option value="suspended">Suspended</option>
-				</select>
-				<label htmlFor="customer-sort-select" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
-					Sort Customers
-				</label>
-				<select
-					id="customer-sort-select"
-					aria-label="Sort Customers"
-					value={sort}
-					onChange={(e) => setSort(e.target.value)}
-				>
-					<option value="latest">Latest</option>
-					<option value="oldest">Oldest</option>
-					<option value="name_asc">Name A-Z</option>
-					<option value="name_desc">Name Z-A</option>
-					<option value="total_spent_desc">Highest Spent</option>
-					<option value="total_spent_asc">Lowest Spent</option>
-					<option value="orders_desc">Most Orders</option>
-				</select>
-				<input
-					type="number"
-					placeholder="Min Orders"
-					value={minOrders}
-					onChange={(e) => setMinOrders(e.target.value)}
-					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white', width: 120 }}
-				/>
-				<input
-					type="number"
-					placeholder="Min Spent"
-					value={minSpent}
-					onChange={(e) => setMinSpent(e.target.value)}
-					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white', width: 120 }}
-				/>
-			</div>
+                {/* Wishlist Tab */}
+                {activeTab === 'wishlist' && (
+                  <div className="grid grid-cols-4 gap-4">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+                      <div key={item} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="relative">
+                          <img
+                            src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+                            alt="Product"
+                            className="w-full h-48 object-cover"
+                          />
+                          <button 
+                            className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+                            title="Remove from wishlist"
+                          >
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="p-3 text-center">
+                          <p className="text-sm font-medium text-gray-900">Product Name</p>
+                          <p className="text-xs text-gray-500 mt-1">Price: $ 1000</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-			{loading && <p>Loading...</p>}
-			{error && <p style={{ color: 'salmon' }}>Error: {error}</p>}
-			{!loading && !error && customers.length === 0 && (
-				<p>No customers found.</p>
-			)}
-			{!loading && !error && customers.length > 0 && (
-				<div>
-					<table style={{ width: '100%', borderCollapse: 'collapse' }}>
-						<thead>
-							<tr>
-								<th align="left">Name</th>
-								<th align="left">Email</th>
-								<th align="left">Phone</th>
-								<th align="left">Orders</th>
-								<th align="left">Total Spent</th>
-								<th align="left">Status</th>
-								<th align="left">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							{customers.map((customer) => (
-								<tr key={customer.id} style={{ borderTop: '1px solid #1e2733' }}>
-									<td>{customer.name}</td>
-									<td>{customer.email}</td>
-									<td>{customer.phone || 'N/A'}</td>
-									<td>{customer.ordersCount || 0}</td>
-									<td>₹{customer.totalSpent || 0}</td>
-									<td>
-										<select
-											className="customer-status-select"
-											title="Customer Status"
-											value={customer.status || 'active'}
-											onChange={(e) => handleUpdateStatus(customer.id, e.target.value)}
-										>
-											<option value="active">Active</option>
-											<option value="inactive">Inactive</option>
-											<option value="blacklisted">Blacklisted</option>
-											<option value="suspended">Suspended</option>
-										</select>
-									</td>
-									<td>
-										<button 
-											onClick={() => handleGetCustomerDetails(customer)}
-											style={{ padding: 4, marginRight: 4, background: '#3b82f6', color: 'white', border: 'none', borderRadius: 4 }}
-										>
-											View
-										</button>
-										<button 
-											onClick={() => {
-												setEditingCustomer(customer)
-												setFormData({
-													name: customer.name,
-													phone: customer.phone || '',
-													status: (customer.status as 'active' | 'inactive' | 'blacklisted' | 'suspended') || 'active'
-												})
-												setShowForm(true)
-											}}
-											style={{ padding: 4, marginRight: 4, background: '#10b981', color: 'white', border: 'none', borderRadius: 4 }}
-										>
-											Edit
-										</button>
-										<button 
-											onClick={() => handleDeleteCustomer(customer.id)}
-											style={{ padding: 4, background: '#ef4444', color: 'white', border: 'none', borderRadius: 4 }}
-										>
-											Delete
-										</button>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-						<button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</button>
-						<span>Page {page} / {totalPages}</span>
-						<button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</button>
-					</div>
-				</div>
-			)}
-		</div>
-	)
+                {/* Reviews Tab */}
+                {activeTab === 'reviews' && (
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900">REVIEW LIST</h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Sort by:</span>
+                        <select 
+                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                          aria-label="Sort reviews"
+                        >
+                          <option>newest</option>
+                          <option>oldest</option>
+                          <option>highest rated</option>
+                          <option>lowest rated</option>
+                        </select>
+                      </div>
+                    </div>
 
-	const renderCustomerForm = () => (
-		<div style={{ maxWidth: 600, margin: '0 auto' }}>
-			<h2>{editingCustomer ? 'Edit Customer' : 'Create New Customer'}</h2>
-			<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-				<input
-					type="text"
-					placeholder="Customer Name"
-					value={formData.name}
-					onChange={(e) => setFormData({...formData, name: e.target.value})}
-					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white' }}
-				/>
-				<input
-					type="text"
-					placeholder="Phone Number"
-					value={formData.phone}
-					onChange={(e) => setFormData({...formData, phone: e.target.value})}
-					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white' }}
-				/>
-				<select 
-				    title="Customer Status"
-					value={formData.status} 
-					onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white' }}
-				>
-					<option value="active">Active</option>
-					<option value="inactive">Inactive</option>
-					<option value="blacklisted">Blacklisted</option>
-					<option value="suspended">Suspended</option>
-				</select>
-				<div style={{ display: 'flex', gap: 8 }}>
-					<button 
-						onClick={editingCustomer ? () => handleUpdateCustomer(editingCustomer.id) : () => {}}
-						style={{ padding: 12, background: '#10b981', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
-					>
-						{editingCustomer ? 'Update Customer' : 'Create Customer'}
-					</button>
-					<button 
-						onClick={() => {
-							setShowForm(false)
-							setEditingCustomer(null)
-						}}
-						style={{ padding: 12, background: '#6b7280', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
-					>
-						Cancel
-					</button>
-				</div>
-			</div>
-		</div>
-	)
+                    <div className="space-y-6">
+                      <div className="bg-white border border-gray-200 rounded-lg p-6">
+                        <div className="flex items-start gap-4 mb-4">
+                          <img
+                            src={selectedCustomer.avatar}
+                            alt={selectedCustomer.name}
+                            className="w-16 h-16 rounded-full object-cover"
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">{selectedCustomer.name}</h4>
+                            <div className="flex items-center gap-1 mt-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo, elit sit amet pretium laoreet, arcu lorem faucibus purus, at dictum lorem massa vitae lectus.
+                        </p>
+                        <div className="flex items-center gap-3 mb-4">
+                          <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="" className="w-20 h-20 object-cover rounded" />
+                          <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="" className="w-20 h-20 object-cover rounded" />
+                          <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="" className="w-20 h-20 object-cover rounded" />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button className="px-6 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                            Delete
+                          </button>
+                          <button className="px-6 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800">
+                            Reply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-	const renderCustomerDetails = () => (
-		<div>
-			{selectedCustomer && customerDetails ? (
-				<div>
-					<h3>Customer Details: {selectedCustomer.name}</h3>
-					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
-						<div style={{ padding: 20, border: '1px solid #1e2733', borderRadius: 8 }}>
-							<h4>Personal Information</h4>
-							<p><strong>Name:</strong> {customerDetails.name}</p>
-							<p><strong>Email:</strong> {customerDetails.email}</p>
-							<p><strong>Phone:</strong> {customerDetails.phone || 'N/A'}</p>
-							<p><strong>Status:</strong> {customerDetails.status}</p>
-							<p><strong>Joined:</strong> {new Date(customerDetails.createdAt).toLocaleDateString()}</p>
-						</div>
-						<div style={{ padding: 20, border: '1px solid #1e2733', borderRadius: 8 }}>
-							<h4>Order Statistics</h4>
-							<p><strong>Total Orders:</strong> {customerDetails.ordersCount || 0}</p>
-							<p><strong>Total Spent:</strong> ₹{customerDetails.totalSpent || 0}</p>
-							<p><strong>Average Order Value:</strong> ₹{customerDetails.avgOrderValue || 0}</p>
-							<p><strong>Last Order:</strong> {customerDetails.lastOrderDate ? new Date(customerDetails.lastOrderDate).toLocaleDateString() : 'Never'}</p>
-						</div>
-						<div style={{ padding: 20, border: '1px solid #1e2733', borderRadius: 8 }}>
-							<h4>Loyalty Information</h4>
-							<p><strong>Loyalty Points:</strong> {customerDetails.loyaltyPoints || 0}</p>
-							<p><strong>Loyalty Tier:</strong> {customerDetails.loyaltyTier || 'Bronze'}</p>
-							<p><strong>Lifetime Value:</strong> ₹{customerDetails.lifetimeValue || 0}</p>
-						</div>
-					</div>
-					
-					<h4>Recent Orders</h4>
-					{customerOrders.length > 0 ? (
-						<table style={{ width: '100%', borderCollapse: 'collapse' }}>
-							<thead>
-								<tr>
-									<th align="left">Order ID</th>
-									<th align="left">Date</th>
-									<th align="left">Total</th>
-									<th align="left">Status</th>
-								</tr>
-							</thead>
-							<tbody>
-								{customerOrders.map((order: any) => (
-									<tr key={order.id} style={{ borderTop: '1px solid #1e2733' }}>
-										<td>{order.orderNumber}</td>
-										<td>{new Date(order.createdAt).toLocaleDateString()}</td>
-										<td>₹{order.total}</td>
-										<td>{order.status}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					) : (
-						<p>No orders found for this customer.</p>
-					)}
-				</div>
-			) : (
-				<p>Select a customer to view details.</p>
-			)}
-		</div>
-	)
+                {/* Note Tab */}
+                {activeTab === 'note' && (
+                  <div className="space-y-4">
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-semibold text-gray-900">Loyal Customer</h4>
+                        <div className="flex items-center gap-2">
+                          <button className="p-2 text-gray-400 hover:text-gray-600" title="Edit">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button className="p-2 text-gray-400 hover:text-red-600" title="Delete">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
 
-	const renderSegments = () => (
-		<div>
-			<h3>Customer Segments</h3>
-			{segmentsLoading && <p>Loading segments...</p>}
-			{segments.map((segment: any) => (
-				<div key={segment.type} style={{ padding: 20, border: '1px solid #1e2733', borderRadius: 8, marginBottom: 16 }}>
-					<h4>{segment.name}</h4>
-					<p><strong>Count:</strong> {segment.count}</p>
-					<p><strong>Description:</strong> {segment.description}</p>
-					<p><strong>Criteria:</strong> {segment.criteria}</p>
-					{segment.customers && segment.customers.length > 0 && (
-						<div>
-							<p><strong>Top Customers:</strong></p>
-							<ul>
-								{segment.customers.slice(0, 5).map((customer: any) => (
-									<li key={customer.id}>{customer.name} - ₹{customer.totalSpent}</li>
-								))}
-							</ul>
-						</div>
-					)}
-				</div>
-			))}
-		</div>
-	)
+                    <div className="bg-white border border-gray-300 border-dashed rounded-lg p-12 flex items-center justify-center">
+                      <button className="flex flex-col items-center gap-2 text-gray-400 hover:text-gray-600">
+                        <div className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                        </div>
+                        <span className="text-sm">Add New Note</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
-	const renderLoyaltyManagement = () => (
-		<div>
-			<h3>Loyalty Points Management</h3>
-			{selectedCustomer ? (
-				<div>
-					<div style={{ padding: 20, border: '1px solid #1e2733', borderRadius: 8, marginBottom: 20 }}>
-						<h4>Selected Customer: {selectedCustomer.name}</h4>
-						<p>Current Points: {customerDetails?.loyaltyPoints || 0}</p>
-					</div>
-					
-					<div style={{ display: 'flex', gap: 20 }}>
-						<div style={{ flex: 1, padding: 20, border: '1px solid #1e2733', borderRadius: 8 }}>
-							<h4>Add Points</h4>
-							<input
-								type="number"
-								placeholder="Points to add"
-								value={loyaltyPoints}
-								onChange={(e) => setLoyaltyPoints(e.target.value)}
-								style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white', width: '100%', marginBottom: 8 }}
-							/>
-							<input
-								type="text"
-								placeholder="Reason"
-								value={loyaltyReason}
-								onChange={(e) => setLoyaltyReason(e.target.value)}
-								style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white', width: '100%', marginBottom: 8 }}
-							/>
-							<button 
-								onClick={() => handleAddLoyaltyPoints(selectedCustomer.id)}
-								style={{ padding: 8, background: '#10b981', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%' }}
-							>
-								Add Points
-							</button>
-						</div>
-						
-						<div style={{ flex: 1, padding: 20, border: '1px solid #1e2733', borderRadius: 8 }}>
-							<h4>Redeem Points</h4>
-							<input
-								type="number"
-								placeholder="Points to redeem"
-								value={loyaltyPoints}
-								onChange={(e) => setLoyaltyPoints(e.target.value)}
-								style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white', width: '100%', marginBottom: 8 }}
-							/>
-							<input
-								type="text"
-								placeholder="Reason"
-								value={loyaltyReason}
-								onChange={(e) => setLoyaltyReason(e.target.value)}
-								style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white', width: '100%', marginBottom: 8 }}
-							/>
-							<button 
-								onClick={() => handleRedeemLoyaltyPoints(selectedCustomer.id)}
-								style={{ padding: 8, background: '#ef4444', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', width: '100%' }}
-							>
-								Redeem Points
-							</button>
-						</div>
-					</div>
-				</div>
-			) : (
-				<p>Select a customer from the list to manage their loyalty points.</p>
-			)}
-		</div>
-	)
-
-	const renderExport = () => (
-		<div>
-			<h3>Export Customers</h3>
-			<div style={{ padding: 20, border: '1px solid #1e2733', borderRadius: 8 }}>
-				<p>Export customer data in various formats:</p>
-				<div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-					<button 
-						onClick={() => handleExportCustomers('csv')}
-						style={{ padding: 12, background: '#10b981', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
-					>
-						Export as CSV
-					</button>
-					<button 
-						onClick={() => handleExportCustomers('excel')}
-						style={{ padding: 12, background: '#3b82f6', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
-					>
-						Export as Excel
-					</button>
-				</div>
-			</div>
-		</div>
-	)
-
-	return (
-		<div>
-			<h1>Customer Management</h1>
-			
-			{/* Tab Navigation */}
-			<div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-				{tabs.map(tab => (
-					<button
-						key={tab.id}
-						onClick={() => setActiveTab(tab.id)}
-						style={{
-							padding: '8px 16px',
-							border: '1px solid #1e2733',
-							borderRadius: 4,
-							background: activeTab === tab.id ? '#3b82f6' : '#0f1419',
-							color: 'white',
-							cursor: 'pointer'
-						}}
-					>
-						{tab.label}
-					</button>
-				))}
-			</div>
-
-			{/* Tab Content */}
-			{activeTab === 'list' && renderCustomerList()}
-			{activeTab === 'search' && (
-				<div>
-					<button 
-						onClick={() => setShowForm(true)}
-						style={{ padding: 12, background: '#10b981', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', marginBottom: 20 }}
-					>
-						Create New Customer
-					</button>
-					{showForm && renderCustomerForm()}
-					{renderCustomerList()}
-					{selectedCustomer && renderCustomerDetails()}
-				</div>
-			)}
-			{activeTab === 'segments' && renderSegments()}
-			{activeTab === 'loyalty' && renderLoyaltyManagement()}
-			{activeTab === 'export' && renderExport()}
-		</div>
-	)
+            {/* New Customer Form View */}
+            {view === 'new-customer' && (
+              <div className="p-6">
+                <NewCustomerForm onBack={handleBackToTable} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
+  );
 }
