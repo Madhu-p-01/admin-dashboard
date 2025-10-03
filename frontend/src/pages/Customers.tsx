@@ -1,7 +1,120 @@
-import { useMemo, useState, useCallback } from 'react'
-import { useApi } from '@/lib/useApi'
-import { api } from '@/lib/api'
-import type { ApiResponse, PaginatedResult, CustomerListItem } from '@/types/api'
+import React, { useState, useCallback, useMemo } from 'react';
+import { AdminLayout } from '../components/layouts/AdminLayout';
+import { FilterPill } from '../components/ui/FilterPill';
+import { StatCard } from '../components/ui/StatCard';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { CustomAvatar } from '../components/ui/CustomAvatar';
+import { ActionButtons } from '../components/ui/ActionButtons';
+import { SearchBar } from '../components/ui/SearchBar';
+import { DataTable } from '../components/ui/DataTable';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Icon } from '../components/ui/Icon';
+import { api } from '../lib/api';
+import { useApi } from '../lib/useApi';
+
+// Add missing ApiResponse type
+type ApiResponse<T = any> = {
+  success: boolean;
+  message?: string;
+  data: T;
+};
+
+// Add missing PaginatedResult type
+type PaginatedResult<T> = {
+  data: T[];
+  meta: {
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
+  };
+};
+
+// Type for customer list items
+export type CustomerListItem = {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  ordersCount?: number;
+  totalSpent?: number;
+  status?: 'active' | 'inactive' | 'blacklisted' | 'suspended';
+  createdAt?: string;
+  lastOrderDate?: string;
+  avgOrderValue?: number;
+  loyaltyPoints?: number;
+  loyaltyTier?: string;
+  lifetimeValue?: number;
+};
+
+ // Mock customer data
+const customers = [
+  {
+    id: '1',
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone: '+91 98765 43210',
+    orders: 12,
+    totalSpent: '₹25,670',
+    status: 'Active',
+    statusColor: '#10b981',
+    joinDate: 'Jan 15, 2024',
+    avatar: 'JD',
+    avatarColor: '#3b82f6'
+  },
+  {
+    id: '2',
+    name: 'Sarah Wilson',
+    email: 'sarah.w@example.com',
+    phone: '+91 87654 32109',
+    orders: 8,
+    totalSpent: '₹18,420',
+    status: 'Active',
+    statusColor: '#10b981',
+    joinDate: 'Feb 20, 2024',
+    avatar: 'SW',
+    avatarColor: '#f59e0b'
+  },
+  {
+    id: '3',
+    name: 'Mike Johnson',
+    email: 'mike.j@example.com',
+    phone: '+91 76543 21098',
+    orders: 5,
+    totalSpent: '₹12,350',
+    status: 'Inactive',
+    statusColor: '#6b7280',
+    joinDate: 'Mar 10, 2024',
+    avatar: 'MJ',
+    avatarColor: '#8b5cf6'
+  },
+  {
+    id: '4',
+    name: 'Emma Davis',
+    email: 'emma.d@example.com',
+    phone: '+91 65432 10987',
+    orders: 15,
+    totalSpent: '₹32,800',
+    status: 'VIP',
+    statusColor: '#f59e0b',
+    joinDate: 'Dec 05, 2023',
+    avatar: 'ED',
+    avatarColor: '#ef4444'
+  },
+  {
+    id: '5',
+    name: 'David Brown',
+    email: 'david.b@example.com',
+    phone: '+91 54321 09876',
+    orders: 3,
+    totalSpent: '₹8,750',
+    status: 'New',
+    statusColor: '#3b82f6',
+    joinDate: 'Apr 22, 2024',
+    avatar: 'DB',
+    avatarColor: '#10b981'
+  },
+];
 
 export default function Customers() {
 	const [activeTab, setActiveTab] = useState('list')
@@ -37,7 +150,7 @@ export default function Customers() {
 	}, [])
 
 	const { data, loading, error } = useApi<{ data: PaginatedResult<CustomerListItem> }>({
-		path: '/customers',
+		path: '/api/v1/admin/customers',
 		params: { 
 			page, 
 			limit, 
@@ -52,12 +165,12 @@ export default function Customers() {
 
 	// Customer Segments
 	const { data: segmentsData, loading: segmentsLoading } = useApi<any>({
-		path: '/customers/segments',
+		path: '/api/v1/admin/customers/segments',
 		transform: useCallback((res: ApiResponse<any>) => (res as any).data, [])
 	})
 
-	const customers = data?.data || []
-	const meta = data?.meta
+	const customers = data?.data?.data || []
+	const meta = data?.data?.meta
 	const segments = segmentsData || []
 	const totalPages = useMemo(() => meta?.totalPages || 1, [meta])
 
@@ -71,7 +184,7 @@ export default function Customers() {
 
 	const handleUpdateCustomer = async (id: string) => {
 		try {
-			await api.request(`/customers/${id}`, 'PUT', formData)
+			await api.request(`/api/v1/admin/customers/${id}`, 'PUT', formData)
 			setShowForm(false)
 			setEditingCustomer(null)
 			// Refresh the list
@@ -84,7 +197,7 @@ export default function Customers() {
 	const handleDeleteCustomer = async (id: string) => {
 		if (confirm('Are you sure you want to delete this customer?')) {
 			try {
-				await api.request(`/customers/${id}`, 'DELETE')
+				await api.request(`/api/v1/admin/customers/${id}`, 'DELETE')
 				// Refresh the list
 				window.location.reload()
 			} catch (error) {
@@ -95,7 +208,7 @@ export default function Customers() {
 
 	const handleUpdateStatus = async (id: string, newStatus: string, reason?: string) => {
 		try {
-			await api.request(`/customers/${id}/status`, 'PUT', { 
+			await api.request(`/api/v1/admin/customers/${id}/status`, 'PUT', { 
 				status: newStatus,
 				reason: reason || undefined
 			})
@@ -108,10 +221,10 @@ export default function Customers() {
 
 	const handleGetCustomerDetails = async (customer: CustomerListItem) => {
 		try {
-			const details = await api.request(`/customers/${customer.id}`, 'GET')
-			const orders = await api.request(`/customers/${customer.id}/orders`, 'GET')
+			const details = await api.request(`/api/v1/admin/customers/${customer.id}`, 'GET')
+			const orders = await api.request(`/api/v1/admin/customers/${customer.id}/orders`, 'GET')
 			setCustomerDetails(details)
-			setCustomerOrders(orders)
+			setCustomerOrders(orders as any[])
 			setSelectedCustomer(customer)
 		} catch (error) {
 			console.error('Error fetching customer details:', error)
@@ -120,7 +233,7 @@ export default function Customers() {
 
 	const handleAddLoyaltyPoints = async (customerId: string) => {
 		try {
-			await api.request(`/customers/${customerId}/loyalty/add`, 'POST', {
+			await api.request(`/api/v1/admin/customers/${customerId}/loyalty/add`, 'POST', {
 				points: parseInt(loyaltyPoints),
 				reason: loyaltyReason
 			})
@@ -137,7 +250,7 @@ export default function Customers() {
 
 	const handleRedeemLoyaltyPoints = async (customerId: string) => {
 		try {
-			await api.request(`/customers/${customerId}/loyalty/redeem`, 'POST', {
+			await api.request(`/api/v1/admin/customers/${customerId}/loyalty/redeem`, 'POST', {
 				points: parseInt(loyaltyPoints),
 				reason: loyaltyReason
 			})
@@ -154,7 +267,7 @@ export default function Customers() {
 
 	const handleExportCustomers = async (format: string) => {
 		try {
-			const response = await api.request(`/customers/export?format=${format}`, 'GET')
+			const response = await api.request(`/api/v1/admin/customers/export?format=${format}`, 'GET')
 			// Handle file download
 			console.log('Export response:', response)
 			alert(`Customers exported as ${format.toUpperCase()}`)
@@ -174,14 +287,30 @@ export default function Customers() {
 					onChange={(e) => setSearch(e.target.value)}
 					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white' }}
 				/>
-				<select value={status} onChange={(e) => setStatus(e.target.value)}>
+				<label htmlFor="customer-status-select" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
+					Customer Status
+				</label>
+				<select
+					id="customer-status-select"
+					aria-label="Customer Status"
+					value={status}
+					onChange={(e) => setStatus(e.target.value)}
+				>
 					<option value="">All Status</option>
 					<option value="active">Active</option>
 					<option value="inactive">Inactive</option>
 					<option value="blacklisted">Blacklisted</option>
 					<option value="suspended">Suspended</option>
 				</select>
-				<select value={sort} onChange={(e) => setSort(e.target.value)}>
+				<label htmlFor="customer-sort-select" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
+					Sort Customers
+				</label>
+				<select
+					id="customer-sort-select"
+					aria-label="Sort Customers"
+					value={sort}
+					onChange={(e) => setSort(e.target.value)}
+				>
 					<option value="latest">Latest</option>
 					<option value="oldest">Oldest</option>
 					<option value="name_asc">Name A-Z</option>
@@ -234,10 +363,11 @@ export default function Customers() {
 									<td>{customer.ordersCount || 0}</td>
 									<td>₹{customer.totalSpent || 0}</td>
 									<td>
-										<select 
-											value={customer.status || 'active'} 
+										<select
+											className="customer-status-select"
+											title="Customer Status"
+											value={customer.status || 'active'}
 											onChange={(e) => handleUpdateStatus(customer.id, e.target.value)}
-											style={{ padding: 4, background: '#0f1419', color: 'white', border: '1px solid #1e2733' }}
 										>
 											<option value="active">Active</option>
 											<option value="inactive">Inactive</option>
@@ -258,7 +388,7 @@ export default function Customers() {
 												setFormData({
 													name: customer.name,
 													phone: customer.phone || '',
-													status: customer.status || 'active'
+													status: (customer.status as 'active' | 'inactive' | 'blacklisted' | 'suspended') || 'active'
 												})
 												setShowForm(true)
 											}}
@@ -306,6 +436,7 @@ export default function Customers() {
 					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white' }}
 				/>
 				<select 
+				    title="Customer Status"
 					value={formData.status} 
 					onChange={(e) => setFormData({...formData, status: e.target.value as any})}
 					style={{ padding: 8, borderRadius: 4, border: '1px solid #1e2733', background: '#0f1419', color: 'white' }}
