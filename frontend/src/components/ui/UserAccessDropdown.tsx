@@ -36,15 +36,17 @@ export function UserAccessDropdown({
       <div className="fixed inset-0 z-40" onClick={onClose} />
       
       {/* Dropdown */}
-      <div className="absolute right-0 top-12 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+      <div className="absolute right-0 top-12 w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
         {/* Search */}
         <div className="p-4 border-b border-gray-100">
           <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+            <svg className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
               placeholder="Search"
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
             />
           </div>
         </div>
@@ -54,51 +56,51 @@ export function UserAccessDropdown({
           {visibleUsers.map((user) => (
             <div
               key={user.id}
-              className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-3 flex-1">
-                {/* Avatar */}
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white relative"
-                  style={{ backgroundColor: user.color }}
-                >
-                  {user.initials}
-                  {user.isOnline && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-                  )}
+                {/* Avatar with online status */}
+                <div className="relative">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white"
+                    style={{ backgroundColor: user.color }}
+                  >
+                    {user.initials}
+                  </div>
+                  {/* Online status indicator */}
+                  <div className={cn(
+                    "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white",
+                    user.isOnline ? "bg-green-500" : "bg-red-500"
+                  )} />
                 </div>
                 
                 {/* User Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                  <div className="text-sm font-semibold text-gray-900">{user.name}</div>
                   <div className="text-xs text-gray-500">{user.role}</div>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {/* Message Button */}
                 <button
                   onClick={() => onMessageUser(user.id)}
-                  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                  className="text-gray-900 hover:text-blue-600 transition-colors"
                   title="Send message"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                   </svg>
-                </button>
-
-                {/* View Report */}
-                <button className="text-xs text-blue-600 hover:text-blue-700">
-                  View report
                 </button>
 
                 {/* Menu Button */}
                 <button
                   onClick={() => onUserMenu(user.id)}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                  className="text-gray-900 hover:text-gray-600 transition-colors"
+                  title="More options"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                   </svg>
                 </button>
@@ -109,41 +111,12 @@ export function UserAccessDropdown({
 
         {/* Show More */}
         {remainingCount > 0 && (
-          <div className="p-4 border-t border-gray-100">
-            <button className="text-sm text-blue-600 hover:text-blue-700">
+          <div className="px-6 py-4 border-t border-gray-100">
+            <button className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               {remainingCount} more
             </button>
           </div>
         )}
-
-        {/* Progress Indicator */}
-        <div className="absolute top-4 right-4">
-          <div className="relative w-12 h-12">
-            <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 48 48">
-              <circle
-                cx="24"
-                cy="24"
-                r="20"
-                stroke="#e5e7eb"
-                strokeWidth="4"
-                fill="none"
-              />
-              <circle
-                cx="24"
-                cy="24"
-                r="20"
-                stroke="#3b82f6"
-                strokeWidth="4"
-                fill="none"
-                strokeDasharray={`${25 * 1.256} ${100 * 1.256}`}
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-semibold text-gray-700">25%</span>
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );

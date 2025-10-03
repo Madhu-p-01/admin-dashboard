@@ -6,7 +6,7 @@ import { Charts } from '../components/ui/Charts';
 export default function DashboardPage() {
   return (
     <AdminLayout title="Dashboard">
-      <div className="p-6">
+      <div className="bg-gray-50 min-h-screen p-6">
         {/* Stats Cards */}
         <DashboardCards />
         
