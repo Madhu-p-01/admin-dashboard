@@ -59,6 +59,12 @@ const navigation = [
     href: '/settings', 
     icon: () => <Icon name="settings" size={20} className="text-current" />,
     isActive: false
+  },
+  { 
+    title: 'Team', 
+    href: '/team', 
+    icon: () => <Icon name="users" size={20} className="text-current" />,
+    isActive: false
   }
 ];
 

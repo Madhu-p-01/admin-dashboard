@@ -72,6 +72,15 @@ export interface CustomerListItem {
 	createdAt: string
 }
 
+export type TeamMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  lastActiveAt?: string;
+};
 
 
 

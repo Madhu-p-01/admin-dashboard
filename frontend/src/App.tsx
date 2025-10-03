@@ -7,6 +7,11 @@ import { AddOrders } from "./pages/AddOrders";
 import { OrdersOverview } from "./pages/OrdersOverview";
 import AbandonedCheckoutPage from "./pages/AbandonedCheckout";
 import ProductsNewPage from "./pages/ProductsNew";
+import CustomersPage from "./pages/CustomersNew";
+import DiscountsNewPage from "./pages/DiscountsNew";
+import CatalogPage from "./pages/Catalog";
+import SettingsNewPage from "./pages/SettingsNew";
+import TeamManagementFinal from "./pages/TeamManagement";
 
 function App() {
   return (
@@ -20,7 +25,13 @@ function App() {
         <Route path="/products" element={<ProductsNewPage />} />
         <Route path="/products/category" element={<ProductsNewPage />} />
         <Route path="/products/inventory" element={<ProductsNewPage />} />
+        <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/discounts" element={<DiscountsNewPage />} />
+        <Route path="/catalog" element={<CatalogPage />} />
+        <Route path="/settings" element={<SettingsNewPage />} />
+        <Route path="/team" element={<TeamManagementFinal />} />
         <Route path="/orders/*" element={<OrdersPage />} />
+        <Route path="*" element={<div className="p-6"><h1>Page Not Found</h1><p>The page you're looking for doesn't exist.</p></div>} />
       </Routes>
     </div>
   );
