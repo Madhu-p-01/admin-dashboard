@@ -14,7 +14,7 @@ export default function TestApi() {
 			console.log('Testing API call...')
 			console.log('Base URL:', import.meta.env.VITE_API_BASE_URL)
 			
-			const response = await api.request('/products')
+			const response = await api.request('/api/v1/admin/products')
 			console.log('API Response:', response)
 			setResult(response)
 		} catch (err: any) {
@@ -31,7 +31,7 @@ export default function TestApi() {
 
 	// Also test the useApi hook
 	const { data: apiData, loading: apiLoading, error: apiError } = useApi({
-		path: '/products',
+		path: '/api/v1/admin/products',
 		transform: (res: any) => {
 			console.log('TestApi useApi response:', res)
 			return res
