@@ -252,7 +252,7 @@ function ProductsAddedGrid() {
       actions={
         <div className="flex gap-2">
           <button 
-            className="w-8 h-8 bg-blue-600 text-white rounded-md flex items-center justify-center hover:bg-blue-700"
+            className="w-8 h-8 bg-white text-black rounded-md flex items-center justify-center hover:bg-black hover:text-white"
             title="Add product"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

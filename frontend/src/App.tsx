@@ -8,7 +8,11 @@ import { OrdersOverview } from "./pages/OrdersOverview";
 import AbandonedCheckoutPage from "./pages/AbandonedCheckout";
 import ProductsNewPage from "./pages/ProductsNew";
 import CustomersPage from "./pages/Customers";
+import CustomerProfilePage from "./pages/CustomerProfilePage";
+import CustomerEditPage from "./pages/CustomerEditPage";
 import DiscountsNewPage from "./pages/Discounts";
+import DiscountDetailPage from "./pages/DiscountDetailPage";
+import DiscountEditPage from "./pages/DiscountEditPage";
 import CatalogPage from "./pages/Catalog";
 import SettingsNewPage from "./pages/SettingsNew";
 import TeamManagementFinal from "./pages/TeamManagement";
@@ -25,8 +29,12 @@ function App() {
         <Route path="/products" element={<ProductsNewPage />} />
         <Route path="/products/category" element={<ProductsNewPage />} />
         <Route path="/products/inventory" element={<ProductsNewPage />} />
-        <Route path="/customers" element={<CustomersPage />} />
-        <Route path="/discounts" element={<DiscountsNewPage />} />
+  <Route path="/customers" element={<CustomersPage />} />
+  <Route path="/customer/:id" element={<CustomerProfilePage />} />
+  <Route path="/customer/:id/edit" element={<CustomerEditPage />} />
+  <Route path="/discounts" element={<DiscountsNewPage />} />
+  <Route path="/discount/:id" element={<DiscountDetailPage />} />
+  <Route path="/discount/:id/edit" element={<DiscountEditPage />} />
         <Route path="/catalog" element={<CatalogPage />} />
         <Route path="/settings" element={<SettingsNewPage />} />
         <Route path="/team" element={<TeamManagementFinal />} />

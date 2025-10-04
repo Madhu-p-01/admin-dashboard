@@ -43,7 +43,7 @@ const navigation = [
     isActive: false
   },
   { 
-    title: 'Discount', 
+    title: 'Discounts', 
     href: '/discounts', 
     icon: () => <Icon name="percent" size={20} className="text-current" />,
     isActive: false
@@ -117,7 +117,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
       />
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col px-4">
         {/* Top Bar */}
         <TopBar
           title={title}
