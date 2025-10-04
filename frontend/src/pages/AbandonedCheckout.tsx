@@ -1,332 +1,300 @@
 import React, { useState } from 'react';
 import { AdminLayout } from '../components/layouts/AdminLayout';
-import { SearchBar } from '../components/ui/SearchBar';
-import { DataTable } from '../components/ui/DataTable';
-import { CustomAvatar } from '../components/ui/CustomAvatar';
-import { StatusBadge } from '../components/ui/StatusBadge';
-import { ActionButtons } from '../components/ui/ActionButtons';
-import { Icon } from '../components/ui/Icon';
+import { Card, CardContent } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Badge } from '../components/ui/Badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/Avatar';
+import { 
+  Search, 
+  Download, 
+  SlidersHorizontal, 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  ShoppingCart,
+  Users,
+  Package,
+  ArrowUpDown,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  ChevronDown
+} from 'lucide-react';
 
-// Mock abandoned checkout data
-const abandonedCheckouts = [
-  {
-    id: '#53200002',
-    products: 8,
-    date: 'Jan 10, 2025',
-    customer: {
-      name: 'Aisha Sharma',
-      avatar: 'AS',
-      color: '#f59e0b'
-    },
-    total: '₹80.76',
-    stage: 'Shipping Details',
-    status: 'Not Recovered',
-    statusColor: '#ef4444'
-  },
-  {
-    id: '#53200002',
-    products: 8,
-    date: 'Jan 10, 2025',
-    customer: {
-      name: 'Aisha Sharma',
-      avatar: 'AS',
-      color: '#f59e0b'
-    },
-    total: '₹80.76',
-    stage: 'Payment Page',
-    status: 'Completed Later',
-    statusColor: '#10b981'
-  },
-  {
-    id: '#53200002',
-    products: 8,
-    date: 'Jan 10, 2025',
-    customer: {
-      name: 'Aisha Sharma',
-      avatar: 'AS',
-      color: '#f59e0b'
-    },
-    total: '₹80.76',
-    stage: 'Shipping Details',
-    status: 'Completed Later',
-    statusColor: '#10b981'
-  },
-  {
-    id: '#53200002',
-    products: 8,
-    date: 'Jan 10, 2025',
-    customer: {
-      name: 'Aisha Sharma',
-      avatar: 'AS',
-      color: '#f59e0b'
-    },
-    total: '₹80.76',
-    stage: 'Cart Review',
-    status: 'Not Recovered',
-    statusColor: '#ef4444'
-  },
-  {
-    id: '#53200002',
-    products: 8,
-    date: 'Jan 10, 2025',
-    customer: {
-      name: 'Aisha Sharma',
-      avatar: 'AS',
-      color: '#f59e0b'
-    },
-    total: '₹80.76',
-    stage: 'Other',
-    status: 'Reminder Sent',
-    statusColor: '#6b7280'
-  },
-  {
-    id: '#53200002',
-    products: 8,
-    date: 'Jan 10, 2025',
-    customer: {
-      name: 'Aisha Sharma',
-      avatar: 'AS',
-      color: '#f59e0b'
-    },
-    total: '₹80.76',
-    stage: 'Shipping Details',
-    status: 'Reminder Sent',
-    statusColor: '#6b7280'
-  },
-  {
-    id: '#53200002',
-    products: 8,
-    date: 'Jan 10, 2025',
-    customer: {
-      name: 'Aisha Sharma',
-      avatar: 'AS',
-      color: '#f59e0b'
-    },
-    total: '₹80.76',
-    stage: 'Cart Review',
-    status: 'Completed Later',
-    statusColor: '#10b981'
-  },
-  {
-    id: '#53200002',
-    products: 8,
-    date: 'Jan 10, 2025',
-    customer: {
-      name: 'Aisha Sharma',
-      avatar: 'AS',
-      color: '#f59e0b'
-    },
-    total: '₹80.76',
-    stage: 'Other',
-    status: 'Not Recovered',
-    statusColor: '#ef4444'
-  },
-];
+interface AbandonedCheckout {
+  id: string;
+  products: number;
+  date: string;
+  customer: string;
+  total: string;
+  stage: string;
+  status: string;
+  statusColor: string;
+}
 
 export default function AbandonedCheckoutPage() {
-  // Define table columns
-  const columns = [
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const abandonedCheckouts: AbandonedCheckout[] = [
     {
-      key: 'id',
-      header: 'Checkout ID',
-      width: '140px',
-      render: (value: string) => (
-        <span className="text-sm font-medium text-gray-900">{value}</span>
-      ),
+      id: '#53200002',
+      products: 8,
+      date: 'Jan 10, 2025',
+      customer: 'Aisha Sharma',
+      total: '₹80.76',
+      stage: 'Shipping Details',
+      status: 'Not Recovered',
+      statusColor: 'bg-red-100 text-red-800'
     },
     {
-      key: 'products',
-      header: 'Products',
-      render: (value: number) => (
-        <div className="flex items-center gap-2">
-          <CustomAvatar
-            initials="1"
-            color="#e5e7eb"
-            size="sm"
-            className="text-gray-600"
-          />
-          <span className="text-sm text-gray-600">{value} Items</span>
-        </div>
-      ),
+      id: '#53200002',
+      products: 8,
+      date: 'Jan 10, 2025',
+      customer: 'Aisha Sharma',
+      total: '₹80.76',
+      stage: 'Payment Page',
+      status: 'Completed Later',
+      statusColor: 'bg-green-100 text-green-800'
     },
     {
-      key: 'date',
-      header: 'Date',
-      sortable: true,
-      render: (value: string) => (
-        <span className="text-sm text-gray-600">{value}</span>
-      ),
+      id: '#53200002',
+      products: 8,
+      date: 'Jan 10, 2025',
+      customer: 'Aisha Sharma',
+      total: '₹80.76',
+      stage: 'Shipping Details',
+      status: 'Completed Later',
+      statusColor: 'bg-green-100 text-green-800'
     },
     {
-      key: 'customer',
-      header: 'Customer',
-      sortable: true,
-      render: (customer: any) => (
-        <div className="flex items-center gap-3">
-          <CustomAvatar
-            initials={customer.avatar}
-            color={customer.color}
-            size="md"
-          />
-          <span className="text-sm text-gray-900">{customer.name}</span>
-        </div>
-      ),
+      id: '#53200002',
+      products: 8,
+      date: 'Jan 10, 2025',
+      customer: 'Aisha Sharma',
+      total: '₹80.76',
+      stage: 'Cart Review',
+      status: 'Not Recovered',
+      statusColor: 'bg-red-100 text-red-800'
     },
     {
-      key: 'total',
-      header: 'Total',
-      width: '100px',
-      render: (value: string) => (
-        <span className="font-medium text-gray-900">{value}</span>
-      ),
+      id: '#53200002',
+      products: 8,
+      date: 'Jan 10, 2025',
+      customer: 'Aisha Sharma',
+      total: '₹80.76',
+      stage: 'Other',
+      status: 'Reminder Sent',
+      statusColor: 'bg-gray-100 text-gray-800'
     },
     {
-      key: 'stage',
-      header: 'Stage',
-      width: '140px',
-      render: (value: string) => (
-        <span className="text-sm text-gray-600">{value}</span>
-      ),
+      id: '#53200002',
+      products: 8,
+      date: 'Jan 10, 2025',
+      customer: 'Aisha Sharma',
+      total: '₹80.76',
+      stage: 'Shipping Details',
+      status: 'Reminder Sent',
+      statusColor: 'bg-gray-100 text-gray-800'
     },
     {
-      key: 'status',
-      header: 'Status',
-      width: '140px',
-      sortable: true,
-      render: (status: string, row: any) => (
-        <StatusBadge
-          status={status}
-          customColor={row.statusColor}
-        />
-      ),
+      id: '#53200002',
+      products: 8,
+      date: 'Jan 10, 2025',
+      customer: 'Aisha Sharma',
+      total: '₹80.76',
+      stage: 'Cart Review',
+      status: 'Completed Later',
+      statusColor: 'bg-green-100 text-green-800'
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      width: '100px',
-      render: () => (
-        <ActionButtons
-          actions={[
-            {
-              iconName: 'edit',
-              onClick: () => console.log('Edit'),
-              tooltip: 'Edit',
-            },
-            {
-              iconName: 'trash',
-              onClick: () => console.log('Delete'),
-              tooltip: 'Delete',
-              variant: 'danger',
-            },
-            {
-              iconName: 'more-horizontal',
-              onClick: () => console.log('More'),
-              tooltip: 'More options',
-            },
-          ]}
-        />
-      ),
+      id: '#53200002',
+      products: 8,
+      date: 'Jan 10, 2025',
+      customer: 'Aisha Sharma',
+      total: '₹80.76',
+      stage: 'Other',
+      status: 'Not Recovered',
+      statusColor: 'bg-red-100 text-red-800'
+    }
+  ];
+
+  const summaryCards = [
+    {
+      percentage: '30%',
+      growth: '+0.10%',
+      title: 'at Cart Review',
+      color: 'bg-blue-50'
     },
+    {
+      percentage: '40%',
+      growth: '+0.10%',
+      title: 'at Shipping Details',
+      color: 'bg-green-50'
+    },
+    {
+      percentage: '20%',
+      growth: '+0.10%',
+      title: 'at Payment Step',
+      color: 'bg-yellow-50'
+    },
+    {
+      percentage: '10%',
+      growth: '+0.10%',
+      title: 'Others',
+      color: 'bg-purple-50'
+    }
   ];
 
   return (
     <AdminLayout title="Abandoned Checkout">
       <div className="p-6">
-        {/* Header Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <SearchBar
-              placeholder="Search"
-              className="w-80"
-              onChange={(value) => console.log('Search:', value)}
-            />
-            <div className="flex items-center gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <Icon name="filter" size={16} />
-                <span>Filter</span>
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <Icon name="sort" size={16} />
-                <span>Sort</span>
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <span>Export</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-gray-200">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="text-sm text-gray-500 mb-1">
-                  <span className="text-green-500 text-xs">+30%</span>
-                </div>
-                <div className="text-3xl font-bold text-gray-900">30%</div>
+        {/* Main Content Box - All components in one outer box */}
+        <Card className="rounded-lg border">
+          <CardContent className="p-6">
+            {/* Search Bar */}
+            <div className="flex items-center gap-3 mb-6">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10"
+                />
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" className="h-10 w-10">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-10 w-10">
+                  <ArrowUpDown className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" className="h-10 px-4 flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Export
+                </Button>
               </div>
             </div>
-            <div className="text-sm text-gray-600">at Cart Review</div>
-            <button className="text-xs text-gray-500 hover:text-gray-700 mt-2 underline">
-              View report
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-gray-200">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="text-sm text-gray-500 mb-1">
-                  <span className="text-green-500 text-xs">+40%</span>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {summaryCards.map((card, index) => (
+                <div key={index} className={`${card.color} rounded-lg p-6`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-green-600 font-medium">{card.growth}</span>
+                      </div>
+                      <div className="text-3xl font-bold text-gray-900">{card.percentage}</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600 mb-2">{card.title}</div>
+                  <button className="text-xs text-gray-500 hover:text-gray-700 underline">
+                    View report
+                  </button>
                 </div>
-                <div className="text-3xl font-bold text-gray-900">40%</div>
-              </div>
+              ))}
             </div>
-            <div className="text-sm text-gray-600">at Shipping Details</div>
-            <button className="text-xs text-gray-500 hover:text-gray-700 mt-2 underline">
-              View report
-            </button>
-          </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="text-sm text-gray-500 mb-1">
-                  <span className="text-green-500 text-xs">+20%</span>
-                </div>
-                <div className="text-3xl font-bold text-gray-900">20%</div>
-              </div>
+            {/* Data Table */}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-[#F4F4F4]">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider rounded-tl-lg">
+                      Checkout ID
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        Products
+                        <ChevronDown className="h-4 w-4" />
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        Date
+                        <ChevronDown className="h-4 w-4" />
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        Customer
+                        <ChevronDown className="h-4 w-4" />
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      Total
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      Stage
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        Status
+                        <ChevronDown className="h-4 w-4" />
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-900 uppercase tracking-wider rounded-tr-lg">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {abandonedCheckouts.map((checkout, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-[#F4F4F4] hover:bg-gray-50'}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-medium text-gray-900">{checkout.id}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src="https://via.placeholder.com/32x32?text=D" />
+                            <AvatarFallback>D</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm text-gray-600">{checkout.products} Items</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-600">{checkout.date}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900">{checkout.customer}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="font-medium text-gray-900">{checkout.total}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-600">{checkout.stage}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge className={`${checkout.statusColor} text-xs font-normal rounded-full border-0`}>
+                          {checkout.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="text-sm text-gray-600">at Payment Step</div>
-            <button className="text-xs text-gray-500 hover:text-gray-700 mt-2 underline">
-              View report
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-gray-200">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="text-sm text-gray-500 mb-1">
-                  <span className="text-green-500 text-xs">+10%</span>
-                </div>
-                <div className="text-3xl font-bold text-gray-900">10%</div>
-              </div>
-            </div>
-            <div className="text-sm text-gray-600">Others</div>
-            <button className="text-xs text-gray-500 hover:text-gray-700 mt-2 underline">
-              View report
-            </button>
-          </div>
-        </div>
-
-        {/* Abandoned Checkouts Table */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          <DataTable
-            columns={columns}
-            data={abandonedCheckouts}
-            onSort={(key) => console.log('Sort by:', key)}
-          />
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );

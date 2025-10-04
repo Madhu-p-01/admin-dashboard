@@ -22,7 +22,7 @@ const navigation = [
     icon: () => <Icon name="shopping-cart" size={20} className="text-current" />,
     isActive: false,
     subItems: [
-      { title: 'Overview', href: '/orders', isActive: false },
+      { title: 'Overview', href: '/orders/overview', isActive: false },
       { title: 'Abandoned Checkout', href: '/checkouts', isActive: false }
     ]
   },
@@ -32,7 +32,7 @@ const navigation = [
     icon: () => <Icon name="package" size={20} className="text-current" />,
     isActive: false,
     subItems: [
-      { title: 'Category', href: '/products/category', isActive: false },
+      { title: 'Category', href: '/categories', isActive: false },
       { title: 'Inventory', href: '/products/inventory', isActive: false }
     ]
   },
@@ -127,7 +127,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
         />
         
         {/* Page Content */}
-        <main className="flex-1">
+        <main className="flex-1 p-2 sm:p-4 lg:p-6">
           {children}
         </main>
       </div>

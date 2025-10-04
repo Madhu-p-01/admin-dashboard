@@ -41,3 +41,27 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+# Test files
+test-*.js
+test-*.ts
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+__tests__/
+test/
+tests/
+
+# Untitled/accidental files
+Untitled*
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.orig
+*.rej
+
+# Setup scripts (optional - uncomment if you don't want to track setup scripts)
+# setup-env.js

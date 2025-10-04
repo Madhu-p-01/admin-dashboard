@@ -10,8 +10,9 @@ export class ApiClient {
 	private accessToken: string | null
 
 	constructor(options?: ApiClientOptions) {
-		this.baseUrl = options?.baseUrl ?? (import.meta.env.VITE_API_BASE_URL as string) ?? 'http://localhost:4000'
+		this.baseUrl = options?.baseUrl ?? (import.meta.env.VITE_API_BASE_URL as string) ?? 'http://localhost:3001'
 		this.accessToken = options?.accessToken ?? null
+		console.log('API Client baseUrl:', this.baseUrl)
 	}
 
 	setToken(token: string | null) {
@@ -22,7 +23,10 @@ export class ApiClient {
 		const headers: Record<string, string> = { 'Content-Type': 'application/json' }
 		if (this.accessToken) headers['Authorization'] = `Bearer ${this.accessToken}`
 
-		const res = await fetch(`${this.baseUrl}${path}`, {
+		const fullUrl = `${this.baseUrl}${path}`
+		console.log('Making API request to:', fullUrl)
+		
+		const res = await fetch(fullUrl, {
 			method,
 			headers,
 			body: body ? JSON.stringify(body) : undefined,

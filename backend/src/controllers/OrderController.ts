@@ -39,7 +39,19 @@ export class OrderController {
         .from('orders')
         .select(`
           ${ORDER_COLUMNS},
-          customers(customer_id, name, email, phone)
+          customers(customer_id, name, email, phone),
+          order_items(
+            item_id,
+            quantity,
+            unit_price,
+            total_price,
+            products(
+              product_id,
+              name,
+              images,
+              sku
+            )
+          )
         `, { count: 'exact' });
 
       // Apply filters
@@ -888,6 +900,97 @@ export class OrderController {
         success: true,
         message: 'Order statistics fetched successfully',
         data: stats
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error',
+        error: errorMessage
+      });
+    }
+  }
+
+  // Delete Order
+  static async deleteOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      // First check if order exists
+      const { data: existingOrder, error: fetchError } = await supabase
+        .from('orders')
+        .select('order_id, status')
+        .eq('order_id', id)
+        .single();
+
+      if (fetchError || !existingOrder) {
+        res.status(404).json({
+          success: false,
+          message: 'Order not found',
+          error: 'Order does not exist'
+        });
+        return;
+      }
+
+      // Check if order can be deleted (only pending orders should be deletable)
+      if (existingOrder.status !== 'pending') {
+        res.status(400).json({
+          success: false,
+          message: 'Cannot delete order',
+          error: 'Only pending orders can be deleted'
+        });
+        return;
+      }
+
+      // Delete order items first (foreign key constraint)
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .delete()
+        .eq('order_id', id);
+
+      if (itemsError) {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to delete order items',
+          error: itemsError.message
+        });
+        return;
+      }
+
+      // Delete payment records
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .delete()
+        .eq('order_id', id);
+
+      if (paymentError) {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to delete payment records',
+          error: paymentError.message
+        });
+        return;
+      }
+
+      // Delete the order
+      const { error: orderError } = await supabase
+        .from('orders')
+        .delete()
+        .eq('order_id', id);
+
+      if (orderError) {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to delete order',
+          error: orderError.message
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Order deleted successfully',
+        data: { orderId: id }
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

@@ -6,17 +6,6 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/Avatar';
 import { 
-  Search, 
-  Download, 
-  Filter, 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  ShoppingCart,
-  Users,
-  Package,
-  ArrowUpDown,
-  MoreVertical,
   Calendar,
   ChevronDown,
   Printer,
@@ -24,26 +13,7 @@ import {
   User
 } from 'lucide-react';
 
-interface OrderStats {
-  totalOrders: number;
-  totalRevenue: number;
-  averageOrderValue: number;
-  conversionRate: number;
-  ordersGrowth: number;
-  revenueGrowth: number;
-}
-
-interface Order {
-  id: string;
-  customer: string;
-  email: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  total: number;
-  date: string;
-  items: number;
-}
-
-export function OrdersOverview() {
+export function OrderDetail() {
   const [orderStatus, setOrderStatus] = useState('Pending');
   const [note, setNote] = useState('');
 
@@ -100,7 +70,7 @@ export function OrdersOverview() {
   };
 
   return (
-    <AdminLayout title="Orders Overview">
+    <AdminLayout title="Order Detail">
       <div className="p-6">
         <Card className="rounded-lg border">
           <CardContent className="p-6">
@@ -140,11 +110,11 @@ export function OrdersOverview() {
               {/* Left Column */}
               <div className="space-y-6">
                 {/* Products Section */}
-                <Card className="bg-gray-50 border border-gray-200">
+                <Card className="bg-white border border-gray-200">
                   <CardContent className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Products</h3>
                     {orderData.products.map((product) => (
-                      <div key={product.id} className="flex items-center gap-4 p-3 bg-white rounded-lg">
+                      <div key={product.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                         <Avatar className="h-12 w-12">
                           <AvatarImage src={product.image} />
                           <AvatarFallback>{product.name.charAt(0)}</AvatarFallback>
@@ -163,7 +133,7 @@ export function OrdersOverview() {
                 </Card>
 
                 {/* Payment Section */}
-                <Card className="bg-gray-50 border border-gray-200">
+                <Card className="bg-white border border-gray-200">
                   <CardContent className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment</h3>
                     <div className="space-y-3">
@@ -194,7 +164,7 @@ export function OrdersOverview() {
                 </Card>
 
                 {/* Deliver to Section */}
-                <Card className="bg-gray-50 border border-gray-200">
+                <Card className="bg-white border border-gray-200">
                   <CardContent className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Deliver to</h3>
                     <p className="text-gray-600">Address: {orderData.delivery.address}</p>
@@ -202,7 +172,7 @@ export function OrdersOverview() {
                 </Card>
 
                 {/* Note Section */}
-                <Card className="bg-gray-50 border border-gray-200">
+                <Card className="bg-white border border-gray-200">
                   <CardContent className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Note:</h3>
                     <Input
@@ -220,12 +190,9 @@ export function OrdersOverview() {
               {/* Right Column */}
               <div className="space-y-6">
                 {/* Customer Section */}
-                <Card className="bg-gray-50 border border-gray-200">
+                <Card className="bg-white border border-gray-200">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <User className="h-5 w-5 text-gray-600" />
-                      <h3 className="text-lg font-semibold text-gray-900">Customer</h3>
-                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer</h3>
                     <div className="flex items-start gap-4 mb-4">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={orderData.customer.avatar} />
@@ -246,7 +213,7 @@ export function OrdersOverview() {
                 </Card>
 
                 {/* Invoice Section */}
-                <Card className="bg-gray-50 border border-gray-200">
+                <Card className="bg-white border border-gray-200">
                   <CardContent className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Invoice</h3>
                     <div className="space-y-3">
@@ -290,3 +257,4 @@ export function OrdersOverview() {
     </AdminLayout>
   );
 }
+

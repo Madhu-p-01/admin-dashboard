@@ -1,324 +1,420 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '../components/layouts/AdminLayout';
-import { FilterPill } from '../components/ui/FilterPill';
-import { StatCard } from '../components/ui/StatCard';
-import { StatusBadge } from '../components/ui/StatusBadge';
-import { ActionButtons } from '../components/ui/ActionButtons';
-import { SearchBar } from '../components/ui/SearchBar';
-import { DataTable } from '../components/ui/DataTable';
-import { PageHeader } from '../components/ui/PageHeader';
-import { Icon } from '../components/ui/Icon';
+import { Card, CardContent } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { 
+  Info,
+  Bold,
+  Italic,
+  Underline,
+  AtSign,
+  Link,
+  Image as ImageIcon,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Undo2,
+  Redo2,
+  Upload,
+  Plus
+} from 'lucide-react';
 
-// Mock catalog data
-const catalogItems = [
-  {
-    id: '1',
-    name: 'Summer Collection 2024',
-    type: 'Collection',
-    products: 45,
-    status: 'Published',
-    statusColor: '#10b981',
-    visibility: 'Public',
-    lastUpdated: 'Aug 15, 2024',
-    createdBy: 'John Admin'
-  },
-  {
-    id: '2',
-    name: 'Women\'s Wear',
-    type: 'Category',
-    products: 128,
-    status: 'Published',
-    statusColor: '#10b981',
-    visibility: 'Public',
-    lastUpdated: 'Aug 10, 2024',
-    createdBy: 'Sarah Manager'
-  },
-  {
-    id: '3',
-    name: 'Featured Products',
-    type: 'Featured List',
-    products: 12,
-    status: 'Published',
-    statusColor: '#10b981',
-    visibility: 'Public',
-    lastUpdated: 'Aug 20, 2024',
-    createdBy: 'Admin'
-  },
-  {
-    id: '4',
-    name: 'Winter Collection 2024',
-    type: 'Collection',
-    products: 0,
-    status: 'Draft',
-    statusColor: '#6b7280',
-    visibility: 'Private',
-    lastUpdated: 'Aug 01, 2024',
-    createdBy: 'Mike Editor'
-  },
-  {
-    id: '5',
-    name: 'Sale Items',
-    type: 'Smart Collection',
-    products: 23,
-    status: 'Scheduled',
-    statusColor: '#f59e0b',
-    visibility: 'Public',
-    lastUpdated: 'Aug 18, 2024',
-    createdBy: 'Emma Admin'
-  },
-  {
-    id: '6',
-    name: 'Accessories',
-    type: 'Category',
-    products: 67,
-    status: 'Published',
-    statusColor: '#10b981',
-    visibility: 'Public',
-    lastUpdated: 'Aug 12, 2024',
-    createdBy: 'David Manager'
-  },
-];
+const Catalog = () => {
+  const navigate = useNavigate();
+  const [heroImages, setHeroImages] = useState<File[]>([]);
+  const [heroMessage, setHeroMessage] = useState('');
+  const [showcaseImage1, setShowcaseImage1] = useState<File | null>(null);
+  const [showcaseImage2, setShowcaseImage2] = useState<File | null>(null);
 
-export default function CatalogPage() {
-  const [activeFilters, setActiveFilters] = useState(['Published Items', 'All Types']);
-
-  const removeFilter = (filter: string) => {
-    setActiveFilters(prev => prev.filter(f => f !== filter));
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, setter: (file: File | null) => void) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setter(file);
+    }
   };
 
-  // Define table columns
-  const columns = [
-    {
-      key: 'name',
-      header: 'Name',
-      render: (name: string, row: any) => (
-        <div>
-          <div className="text-sm font-medium text-gray-900">{name}</div>
-          <div className="text-sm text-gray-500">{row.products} products</div>
-        </div>
-      ),
-    },
-    {
-      key: 'type',
-      header: 'Type',
-      render: (type: string) => {
-        const typeColors: Record<string, string> = {
-          'Collection': 'bg-blue-100 text-blue-700',
-          'Category': 'bg-green-100 text-green-700',
-          'Featured List': 'bg-purple-100 text-purple-700',
-          'Smart Collection': 'bg-orange-100 text-orange-700'
-        };
-        return (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColors[type] || 'bg-gray-100 text-gray-700'}`}>
-            {type}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'products',
-      header: 'Products',
-      render: (products: number) => (
-        <span className="text-sm text-gray-900">{products} items</span>
-      ),
-    },
-    {
-      key: 'visibility',
-      header: 'Visibility',
-      render: (visibility: string) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          visibility === 'Public' 
-            ? 'bg-green-100 text-green-700' 
-            : 'bg-gray-100 text-gray-700'
-        }`}>
-          {visibility}
-        </span>
-      ),
-    },
-    {
-      key: 'createdBy',
-      header: 'Created By',
-    },
-    {
-      key: 'lastUpdated',
-      header: 'Last Updated',
-      sortable: true,
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      width: '120px',
-      render: (status: string, row: any) => (
-        <StatusBadge
-          status={status}
-          customColor={row.statusColor}
-        />
-      ),
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      width: '100px',
-      render: () => (
-        <ActionButtons
-          actions={[
-            {
-              iconName: 'eye',
-              onClick: () => console.log('View'),
-              tooltip: 'View',
-            },
-            {
-              iconName: 'edit',
-              onClick: () => console.log('Edit'),
-              tooltip: 'Edit',
-            },
-            {
-              iconName: 'copy',
-              onClick: () => console.log('Duplicate'),
-              tooltip: 'Duplicate',
-            },
-            {
-              iconName: 'trash',
-              onClick: () => console.log('Delete'),
-              tooltip: 'Delete',
-              variant: 'danger',
-            },
-          ]}
-        />
-      ),
-    },
-  ];
+  const handleHeroImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setHeroImages([...heroImages, file]);
+    }
+  };
 
-  // Table header actions
-  const headerActions = [
-    {
-      label: 'Export',
-      icon: 'download',
-      onClick: () => console.log('Export'),
-      variant: 'secondary' as const,
-    },
-    {
-      label: 'Import',
-      icon: 'upload',
-      onClick: () => console.log('Import'),
-      variant: 'secondary' as const,
-    },
-    {
-      label: 'Create Collection',
-      icon: 'plus',
-      onClick: () => console.log('Create Collection'),
-      variant: 'primary' as const,
-    },
-  ];
+  const handleImageDrop = (event: React.DragEvent<HTMLDivElement>, setter: (file: File | null) => void) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setter(file);
+    }
+  };
+
+  const handleHeroImageDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setHeroImages([...heroImages, file]);
+    }
+  };
+
+  const handleImageDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  const handleAddImageSlider = () => {
+    // Add new image slider slot
+    console.log('Add new image slider');
+  };
+
+  const handleSaveDraft = () => {
+    console.log('Save draft:', {
+      heroImages,
+      heroMessage,
+      showcaseImage1,
+      showcaseImage2
+    });
+  };
+
+  const handlePublish = () => {
+    console.log('Publish catalog:', {
+      heroImages,
+      heroMessage,
+      showcaseImage1,
+      showcaseImage2
+    });
+  };
+
+  const handleCancel = () => {
+    navigate('/catalog');
+  };
 
   return (
     <AdminLayout title="Catalog">
-      <div className="p-6">
-        {/* Search Bar and Filters */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <SearchBar
-              placeholder="Search catalog items..."
-              className="w-80"
-              onChange={(value) => console.log('Search:', value)}
-            />
-            <div className="flex items-center gap-2">
-              <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg">
-                <Icon name="filter" size={16} />
-                <span>Filter</span>
-              </button>
-              <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg">
-                <Icon name="download" size={16} />
-                <span>Export</span>
-              </button>
-              <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                <Icon name="plus" size={16} />
-                <span>Create Collection</span>
-              </button>
+      <div>
+        <Card className="rounded-lg border">
+          <CardContent className="p-6">
+            {/* Hero Section */}
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Hero Section</h2>
+              
+              {/* Hero Section Image */}
+              <div className="mb-8">
+                <h3 className="text-base font-medium text-gray-900 mb-4">Hero Section Image</h3>
+                
+                {/* Image Slider 1 */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium text-gray-700">Image Slider 1</label>
+                    <Info className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative"
+                    onDrop={handleHeroImageDrop}
+                    onDragOver={handleImageDragOver}
+                    onClick={() => document.getElementById('hero-image-1')?.click()}
+                  >
+                    <input
+                      id="hero-image-1"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleHeroImageUpload}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center justify-center h-32">
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+                        <Upload className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        Click or drop image
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image Slider 2 */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium text-gray-700">Image Slider 2</label>
+                    <Info className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative"
+                    onDrop={handleHeroImageDrop}
+                    onDragOver={handleImageDragOver}
+                    onClick={() => document.getElementById('hero-image-2')?.click()}
+                  >
+                    <input
+                      id="hero-image-2"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleHeroImageUpload}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center justify-center h-32">
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+                        <Upload className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        Click or drop image
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image Slider 3 */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium text-gray-700">Image Slider 3</label>
+                    <Info className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative"
+                    onDrop={handleHeroImageDrop}
+                    onDragOver={handleImageDragOver}
+                    onClick={() => document.getElementById('hero-image-3')?.click()}
+                  >
+                    <input
+                      id="hero-image-3"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleHeroImageUpload}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center justify-center h-32">
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+                        <Upload className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        Click or drop image
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Add Image Slider Button */}
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleAddImageSlider}
+                    className="bg-black text-white hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Image Slider
+                  </Button>
+                </div>
+              </div>
+
+              {/* Hero Section Top Message */}
+              <div className="mb-6">
+                <h3 className="text-base font-medium text-gray-900 mb-4">Hero Section Top Message</h3>
+                
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium text-gray-700">Description</label>
+                    <Info className="h-4 w-4 text-gray-400" />
+                  </div>
+                  
+                  {/* Rich Text Editor */}
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    {/* Toolbar */}
+                    <div className="bg-white border-b border-gray-300 p-2 flex items-center justify-between">
+                      {/* Left-aligned icons */}
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <Bold className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <Italic className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <Underline className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <AtSign className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <Link className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <ImageIcon className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <List className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <ListOrdered className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <AlignLeft className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <AlignCenter className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <AlignRight className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <AlignJustify className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      {/* Right-aligned icons */}
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <Undo2 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <Redo2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Text Area */}
+                    <textarea
+                      value={heroMessage}
+                      onChange={(e) => setHeroMessage(e.target.value)}
+                      className="w-full h-32 p-4 bg-[#E0E0E0] border-0 resize-none focus:outline-none focus:ring-0 rounded-b-lg"
+                      style={{ resize: 'vertical' }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          {/* Active Filters */}
-          <div className="flex items-center gap-2">
-            {activeFilters.map((filter, index) => (
-              <FilterPill
-                key={index}
-                label={filter}
-                onRemove={() => removeFilter(filter)}
-              />
-            ))}
-          </div>
-        </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Collections"
-            value="24"
-            iconName="folder"
-            iconBgColor="bg-blue-100"
-            iconTextColor="text-blue-600"
-          />
-          <StatCard
-            title="Published"
-            value="18"
-            iconName="eye"
-            iconBgColor="bg-green-100"
-            iconTextColor="text-green-600"
-          />
-          <StatCard
-            title="Categories"
-            value="12"
-            iconName="grid"
-            iconBgColor="bg-purple-100"
-            iconTextColor="text-purple-600"
-          />
-          <StatCard
-            title="Featured Items"
-            value="45"
-            iconName="star"
-            iconBgColor="bg-yellow-100"
-            iconTextColor="text-yellow-600"
-          />
-        </div>
+            {/* Product Showcase Section */}
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Product Showcase Section</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Image 1 */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium text-gray-700">Image 1</label>
+                    <Info className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative"
+                    onDrop={(e) => handleImageDrop(e, setShowcaseImage1)}
+                    onDragOver={handleImageDragOver}
+                    onClick={() => document.getElementById('showcase-image-1')?.click()}
+                  >
+                    <input
+                      id="showcase-image-1"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, setShowcaseImage1)}
+                      className="hidden"
+                    />
+                    {showcaseImage1 ? (
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <img 
+                            src={URL.createObjectURL(showcaseImage1)} 
+                            alt="Showcase preview" 
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <p className="text-sm text-gray-600">{showcaseImage1.name}</p>
+                        <Button variant="outline" size="sm" className="text-xs">
+                          Change Image
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-32">
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+                          <Upload className="h-6 w-6 text-gray-400" />
+                        </div>
+                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          Click or drop image
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <button className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
-            <Icon name="plus" size={20} className="text-blue-600 mb-2" />
-            <div className="text-sm font-medium text-gray-900">Create Collection</div>
-            <div className="text-xs text-gray-500">Group products together</div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors">
-            <Icon name="grid" size={20} className="text-green-600 mb-2" />
-            <div className="text-sm font-medium text-gray-900">Add Category</div>
-            <div className="text-xs text-gray-500">Organize product types</div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors">
-            <Icon name="star" size={20} className="text-purple-600 mb-2" />
-            <div className="text-sm font-medium text-gray-900">Featured List</div>
-            <div className="text-xs text-gray-500">Highlight top products</div>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors">
-            <Icon name="zap" size={20} className="text-orange-600 mb-2" />
-            <div className="text-sm font-medium text-gray-900">Smart Collection</div>
-            <div className="text-xs text-gray-500">Auto-update based on rules</div>
-          </button>
-        </div>
+                {/* Image 2 */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium text-gray-700">Image 2</label>
+                    <Info className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative"
+                    onDrop={(e) => handleImageDrop(e, setShowcaseImage2)}
+                    onDragOver={handleImageDragOver}
+                    onClick={() => document.getElementById('showcase-image-2')?.click()}
+                  >
+                    <input
+                      id="showcase-image-2"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, setShowcaseImage2)}
+                      className="hidden"
+                    />
+                    {showcaseImage2 ? (
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <img 
+                            src={URL.createObjectURL(showcaseImage2)} 
+                            alt="Showcase preview" 
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <p className="text-sm text-gray-600">{showcaseImage2.name}</p>
+                        <Button variant="outline" size="sm" className="text-xs">
+                          Change Image
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-32">
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+                          <Upload className="h-6 w-6 text-gray-400" />
+                        </div>
+                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          Click or drop image
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        {/* Catalog Table */}
-        <div>
-          <PageHeader
-            title="All Catalog Items"
-            actions={headerActions}
-          />
-          <DataTable
-            columns={columns}
-            data={catalogItems}
-            onSort={(key) => console.log('Sort by:', key)}
-          />
-        </div>
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+              <Button 
+                variant="outline" 
+                onClick={handleCancel}
+                className="px-6 bg-white border-gray-300 text-black hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleSaveDraft}
+                className="px-6 bg-white border-gray-300 text-black hover:bg-gray-50"
+              >
+                Save Draft
+              </Button>
+              <Button 
+                onClick={handlePublish}
+                className="px-6 bg-black text-white hover:bg-gray-800"
+              >
+                Publish
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
-}
+};
+
+export default Catalog;

@@ -172,6 +172,15 @@ router.put(
   OrderController.archiveOrder
 );
 
+// 11. Delete Order (Admin Action)
+router.delete(
+  '/:id',
+  supabaseAdminAuth,
+  [param('id').isUUID().withMessage('Valid order ID is required')],
+  validateRequest,
+  OrderController.deleteOrder
+);
+
 // Get Order Statistics
 router.get(
   '/stats/overview',

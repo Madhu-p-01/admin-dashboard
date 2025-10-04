@@ -3,6 +3,7 @@ import { cn } from "../../lib/utils";
 import { UserAccessDropdown } from "./UserAccessDropdown";
 import { MessagingModal } from "./MessagingModal";
 import { AccessGrantingForm } from "./AccessGrantingForm";
+import { Plus, Bell, ChevronDown } from "lucide-react";
 
 interface User {
   id: string;
@@ -58,28 +59,28 @@ export function TopBar({
   return (
     <div
       className={cn(
-        "bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between",
+        "bg-white border border-gray-200 px-6 py-2 flex items-center justify-between rounded-xl shadow-sm mx-2 sm:mx-4 lg:mx-6 mt-2 sm:mt-4 lg:mt-6",
         className
       )}
     >
       {/* Title */}
-      <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+      <h1 
+        className="text-black"
+        style={{
+          fontFamily: 'Inter',
+          fontWeight: 500, // Medium
+          fontSize: '25px',
+          lineHeight: '20px',
+          letterSpacing: '0%',
+          textAlign: 'left',
+          verticalAlign: 'middle'
+        }}
+      >
+        {title}
+      </h1>
 
       {/* Right Section */}
-      <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
-            🔍
-          </span>
-          <input
-            type="text"
-            placeholder={searchPlaceholder}
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg w-80 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-            onChange={(e) => onSearch?.(e.target.value)}
-          />
-        </div>
-
+      <div className="flex items-center gap-3">
         {/* User Avatars */}
         <div className="flex items-center relative">
           {displayedUsers.map((user, index) => (
@@ -96,13 +97,11 @@ export function TopBar({
             </div>
           ))}
 
-          {/* Add User Button */}
-          <div 
-            className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 ml-2 cursor-pointer hover:border-gray-400"
-            onClick={() => setIsFormOpen(true)}
-          >
-            <span className="text-lg">+</span>
-          </div>
+          {/* Chevron Down */}
+          <ChevronDown 
+            className="w-4 h-4 text-gray-400 ml-1 cursor-pointer" 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          />
 
           {/* User Access Dropdown */}
           <UserAccessDropdown
@@ -114,12 +113,20 @@ export function TopBar({
           />
         </div>
 
+        {/* Plus Button */}
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50 transition-colors"
+        >
+          <Plus className="w-4 h-4 text-gray-600" />
+        </button>
+
         {/* Notification Bell */}
         <button
           onClick={onNotificationClick}
-          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50 transition-colors"
         >
-          <span className="text-lg">🔔</span>
+          <Bell className="w-4 h-4 text-gray-600" />
         </button>
       </div>
 
