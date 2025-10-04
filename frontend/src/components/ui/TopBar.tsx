@@ -79,7 +79,7 @@ export function TopBar({
     <div className="px-6 pt-6">
       <div
         className={cn(
-          "bg-white border border-gray-200 rounded-lg shadow-sm px-6 py-4 flex items-center justify-between",
+          "bg-white border border-gray-200 rounded-lg shadow-sm px-4 py-1.5 flex items-center justify-between",
           className
         )}
       >
@@ -87,62 +87,68 @@ export function TopBar({
       <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
 
       {/* Right Section */}
-      <div className="flex items-center gap-3">
-        {/* User Avatars Container with Dropdown */}
-        <div className="flex items-center gap-3 bg-white border border-gray-300 rounded-full px-4 py-2 relative">
-          <div className="flex items-center">
-            {displayedUsers.map((user, index) => (
-              <div
-                key={user.id}
-                className={cn(
-                  "w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white cursor-pointer",
-                  index > 0 && "-ml-3"
-                )}
-                style={{ backgroundColor: user.color }}
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
-                {user.initials}
-              </div>
-            ))}
+      <div className="flex items-center gap-3 relative">
+        {/* Combined User Avatars and Add Button Container */}
+        <div className="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden">
+          {/* User Avatars Section */}
+          <div className="flex items-center gap-3 px-1 py-1">
+            <div className="flex items-center">
+              {displayedUsers.map((user, index) => (
+                <div
+                  key={user.id}
+                  className={cn(
+                    "w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white cursor-pointer",
+                    index > 0 && "-ml-3"
+                  )}
+                  style={{ backgroundColor: user.color }}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  {user.initials}
+                </div>
+              ))}
+            </div>
+
+            {/* Dropdown Arrow */}
+            <button 
+              title="User actions"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </div>
 
-          {/* Dropdown Arrow */}
+          {/* Divider */}
+          <div className="w-px h-8 bg-gray-300"></div>
+
+          {/* Add User Button Section */}
           <button 
-            title="User actions"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            title="Add User"
+            className="px-4 py-2 flex items-center justify-center text-black hover:bg-gray-50 transition-colors"
+            onClick={() => setIsFormOpen(true)}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
           </button>
-
-          {/* User Access Dropdown */}
-          <UserAccessDropdown
-            users={allUsers}
-            isOpen={isDropdownOpen}
-            onClose={() => setIsDropdownOpen(false)}
-            onMessageUser={handleMessageUser}
-            onUserMenu={(userId) => console.log('User menu:', userId)}
-          />
         </div>
 
-        {/* Add User Button */}
-        <button 
-          title="Add User"
-          className="w-12 h-12 bg-white border border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors"
-          onClick={() => setIsFormOpen(true)}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
+        {/* User Access Dropdown - Positioned outside container */}
+        <UserAccessDropdown
+          users={allUsers}
+          isOpen={isDropdownOpen}
+          onClose={() => setIsDropdownOpen(false)}
+          onMessageUser={handleMessageUser}
+          onUserMenu={(userId) => console.log('User menu:', userId)}
+        />
 
         {/* Notification Bell */}
         <button
           onClick={onNotificationClick}
           title="Notifications"
-          className="w-12 h-12 bg-white border border-gray-300 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+          className="w-10 h-10 bg-white border border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />

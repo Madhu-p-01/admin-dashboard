@@ -4,9 +4,10 @@ import { ArrowLeft } from 'lucide-react';
 interface NewDiscountFormProps {
   onBack: () => void;
   onSave?: (discount: any) => void;
+  onAdd?: (discount: any) => void;
 }
 
-export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave }) => {
+export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave, onAdd }) => {
   const [formData, setFormData] = useState({
     discountCode: '',
     discountType: 'Percentage',
@@ -18,8 +19,35 @@ export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave
     endDate: ''
   });
 
+  const [showTooltip, setShowTooltip] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.discountCode.trim()) {
+      newErrors.discountCode = 'Discount code is required';
+    }
+    if (!formData.discountValue.trim()) {
+      newErrors.discountValue = 'Discount value is required';
+    }
+    if (formData.discountType === 'Percentage' && (parseFloat(formData.discountValue) < 0 || parseFloat(formData.discountValue) > 100)) {
+      newErrors.discountValue = 'Percentage must be between 0 and 100';
+    }
+    if (formData.discountType === 'Fixed Amount' && parseFloat(formData.discountValue) <= 0) {
+      newErrors.discountValue = 'Fixed amount must be greater than 0';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleCancel = () => {
@@ -27,16 +55,28 @@ export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave
   };
 
   const handleSaveDraft = () => {
-    console.log('Save draft:', formData);
-    // Implement save draft logic
-  };
-
-  const handleActivate = () => {
-    console.log('Activate:', formData);
     if (onSave) {
       onSave(formData);
     }
     onBack();
+  };
+
+  const handleAdd = () => {
+    if (validateForm()) {
+      if (onAdd) {
+        onAdd(formData);
+      }
+      onBack();
+    }
+  };
+
+  const tooltips = {
+    discountCode: 'Unique code that customers will enter to apply the discount. Maximum 100 characters.',
+    discountType: 'Choose between percentage discount, fixed amount off, or free shipping.',
+    discountValue: 'The amount of discount to apply. For percentage, enter 0-100. For fixed amount, enter the currency value.',
+    usageRules: 'Set limits on how many times this discount can be used by individual customers and in total.',
+    minimumPurchase: 'Minimum order value required for the discount to be applicable.',
+    dateTime: 'Set the start and end dates when this discount will be active.'
   };
 
   return (
@@ -51,42 +91,69 @@ export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave
           <ArrowLeft className="w-5 h-5" />
           <span className="text-sm font-medium">Back</span>
         </button>
-        <h2 className="text-xl font-semibold text-gray-900">Name & description</h2>
+        <h2 className="text-xl font-semibold text-gray-900">Create New Discount</h2>
       </div>
 
       {/* Form Fields */}
-      <div className="space-y-6">
+      <form className="space-y-6">
         {/* Discount Code */}
         <div>
           <div className="flex items-center gap-3 mb-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              Discount code
-              <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-                i
-              </span>
+              Discount code <span className="text-red-500">*</span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onMouseEnter={() => setShowTooltip('discountCode')}
+                  onMouseLeave={() => setShowTooltip(null)}
+                  className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+                >
+                  i
+                </button>
+                {showTooltip === 'discountCode' && (
+                  <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                    {tooltips.discountCode}
+                  </div>
+                )}
+              </div>
             </label>
-            <p className="text-xs text-gray-500">Maximum 100 characters. No HTML or emoji allowed</p>
           </div>
           <input
             type="text"
             value={formData.discountCode}
             onChange={(e) => handleInputChange('discountCode', e.target.value)}
-            placeholder="Input your text"
+            placeholder="Input your discount code"
             maxLength={100}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.discountCode ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
+          {errors.discountCode && (
+            <p className="text-red-500 text-xs mt-1">{errors.discountCode}</p>
+          )}
         </div>
 
         {/* Discount Type */}
         <div>
           <div className="flex items-center gap-3 mb-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              Discount type
-              <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-                i
-              </span>
+              Discount type <span className="text-red-500">*</span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onMouseEnter={() => setShowTooltip('discountType')}
+                  onMouseLeave={() => setShowTooltip(null)}
+                  className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+                >
+                  i
+                </button>
+                {showTooltip === 'discountType' && (
+                  <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                    {tooltips.discountType}
+                  </div>
+                )}
+              </div>
             </label>
-            <p className="text-xs text-gray-500">Maximum 100 characters. No HTML or emoji allowed</p>
           </div>
           <div className="relative">
             <select
@@ -110,27 +177,56 @@ export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave
         {/* Discount Value */}
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-            Discount value
-            <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-              i
-            </span>
+            Discount value <span className="text-red-500">*</span>
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowTooltip('discountValue')}
+                onMouseLeave={() => setShowTooltip(null)}
+                className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+              >
+                i
+              </button>
+              {showTooltip === 'discountValue' && (
+                <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                  {tooltips.discountValue}
+                </div>
+              )}
+            </div>
           </label>
           <input
             type="text"
             value={formData.discountValue}
             onChange={(e) => handleInputChange('discountValue', e.target.value)}
             placeholder="Value"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.discountValue ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
+          {errors.discountValue && (
+            <p className="text-red-500 text-xs mt-1">{errors.discountValue}</p>
+          )}
         </div>
 
         {/* Usage Rules */}
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-4">
             Usage Rules
-            <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-              i
-            </span>
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowTooltip('usageRules')}
+                onMouseLeave={() => setShowTooltip(null)}
+                className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+              >
+                i
+              </button>
+              {showTooltip === 'usageRules' && (
+                <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                  {tooltips.usageRules}
+                </div>
+              )}
+            </div>
           </label>
           <div className="space-y-3">
             <input
@@ -153,9 +249,21 @@ export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave
           <div className="mt-6">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               Minimum purchase amount
-              <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-                i
-              </span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onMouseEnter={() => setShowTooltip('minimumPurchase')}
+                  onMouseLeave={() => setShowTooltip(null)}
+                  className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+                >
+                  i
+                </button>
+                {showTooltip === 'minimumPurchase' && (
+                  <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                    {tooltips.minimumPurchase}
+                  </div>
+                )}
+              </div>
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">₹</span>
@@ -174,16 +282,22 @@ export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
             Date & Time
-            <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-              i
-            </span>
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowTooltip('dateTime')}
+                onMouseLeave={() => setShowTooltip(null)}
+                className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+              >
+                i
+              </button>
+              {showTooltip === 'dateTime' && (
+                <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                  {tooltips.dateTime}
+                </div>
+              )}
+            </div>
           </label>
-          <div className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg mb-4">
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className="text-sm text-gray-700">Feb 16,2025 - Feb 20,2025</span>
-          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
@@ -207,7 +321,7 @@ export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave
             </div>
           </div>
         </div>
-      </div>
+      </form>
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-3 mt-8">
@@ -224,10 +338,10 @@ export const NewDiscountForm: React.FC<NewDiscountFormProps> = ({ onBack, onSave
           Save Draft
         </button>
         <button
-          onClick={handleActivate}
+          onClick={handleAdd}
           className="px-6 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
         >
-          Activate
+          Add
         </button>
       </div>
     </div>

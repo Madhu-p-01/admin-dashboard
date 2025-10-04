@@ -60,7 +60,7 @@ export function CustomerProfile({ customer, onClose }: CustomerProfileProps) {
                     <img
                       src={customer.avatar}
                       alt={customer.name}
-                      className="w-24 h-24 rounded-full object-cover"
+                      className="w-20 h-20 rounded-full object-cover"
                     />
                     <p className="text-center font-medium text-gray-900 mt-2">{customer.name}</p>
                   </div>

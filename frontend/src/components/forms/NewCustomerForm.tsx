@@ -4,18 +4,28 @@ import { ArrowLeft } from 'lucide-react';
 interface NewCustomerFormProps {
   onBack: () => void;
   onSave?: (customer: any) => void;
+  initialData?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneCountry: string;
+    phone: string;
+    language: string;
+    note: string;
+  };
 }
 
-export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave }) => {
+export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave, initialData }) => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phoneCountry: '+91',
-    phone: '',
-    language: '',
-    note: ''
+    firstName: initialData?.firstName || '',
+    lastName: initialData?.lastName || '',
+    email: initialData?.email || '',
+    phoneCountry: initialData?.phoneCountry || '+91',
+    phone: initialData?.phone || '',
+    language: initialData?.language || '',
+    note: initialData?.note || ''
   });
+  const [showTooltip, setShowTooltip] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -31,6 +41,11 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
   };
 
   const handleConfirm = () => {
+    // Validation for required fields
+    if (!formData.firstName.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.language.trim()) {
+      alert('Please fill all required fields: First Name, Email, Phone Number, and Language.');
+      return;
+    }
     console.log('Confirm:', formData);
     if (onSave) {
       onSave(formData);
@@ -38,8 +53,16 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
     onBack();
   };
 
+  const tooltips = {
+    firstName: 'Enter the customer\'s first name. This field is required.',
+    email: 'Enter a valid email address for the customer. This field is required.',
+    phone: 'Enter the customer\'s phone number. This field is required.',
+    language: 'Specify the customer\'s preferred language. This field is required.',
+    note: 'Add any additional notes or comments about the customer.'
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 relative">
       {/* Header with Back Button */}
       <div className="mb-6">
         <button
@@ -59,16 +82,29 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
         <div className="grid grid-cols-2 gap-14">
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              First Name
-              <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-                i
-              </span>
+              First Name <span className="text-red-500">*</span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onMouseEnter={() => setShowTooltip('firstName')}
+                  onMouseLeave={() => setShowTooltip(null)}
+                  className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+                >
+                  i
+                </button>
+                {showTooltip === 'firstName' && (
+                  <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                    {tooltips.firstName}
+                  </div>
+                )}
+              </div>
             </label>
             <input
               type="text"
               value={formData.firstName}
               onChange={(e) => handleInputChange('firstName', e.target.value)}
               placeholder="Input your text"
+              required
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -89,16 +125,29 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
         {/* Email */}
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-            Email
-            <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-              i
-            </span>
+            Email <span className="text-red-500">*</span>
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowTooltip('email')}
+                onMouseLeave={() => setShowTooltip(null)}
+                className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+              >
+                i
+              </button>
+              {showTooltip === 'email' && (
+                <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                  {tooltips.email}
+                </div>
+              )}
+            </div>
           </label>
           <input
             type="email"
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
             placeholder="Input your text"
+            required
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -106,10 +155,22 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
         {/* Phone Number */}
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-            Phone Number
-            <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-              i
-            </span>
+            Phone Number <span className="text-red-500">*</span>
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowTooltip('phone')}
+                onMouseLeave={() => setShowTooltip(null)}
+                className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+              >
+                i
+              </button>
+              {showTooltip === 'phone' && (
+                <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                  {tooltips.phone}
+                </div>
+              )}
+            </div>
           </label>
           <div className="flex gap-3">
             <div className="relative w-24">
@@ -135,6 +196,7 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="Input your text"
+              required
               className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -143,24 +205,52 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
         {/* Language */}
         <div>
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-            Language
-            <span className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500">
-              i
-            </span>
+            Language <span className="text-red-500">*</span>
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowTooltip('language')}
+                onMouseLeave={() => setShowTooltip(null)}
+                className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+              >
+                i
+              </button>
+              {showTooltip === 'language' && (
+                <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                  {tooltips.language}
+                </div>
+              )}
+            </div>
           </label>
           <input
             type="text"
             value={formData.language}
             onChange={(e) => handleInputChange('language', e.target.value)}
             placeholder="Input your text"
+            required
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
         {/* Note */}
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
             Note:
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowTooltip('note')}
+                onMouseLeave={() => setShowTooltip(null)}
+                className="inline-flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-xs text-gray-500 hover:bg-gray-100"
+              >
+                i
+              </button>
+              {showTooltip === 'note' && (
+                <div className="absolute left-6 top-0 z-10 w-64 p-2 bg-gray-900 text-white text-xs rounded-md shadow-lg">
+                  {tooltips.note}
+                </div>
+              )}
+            </div>
           </label>
           <textarea
             value={formData.note}
