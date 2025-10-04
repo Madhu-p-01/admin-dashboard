@@ -65,3 +65,13 @@ Untitled*
 
 # Setup scripts (optional - uncomment if you don't want to track setup scripts)
 # setup-env.js
+
+# Database setup files (one-time use)
+backend/database/cleanup_database.sql
+backend/database/setup_storage.sql
+backend/database/sample_data.sql
+backend/database/DATABASE_RESET_GUIDE.md
+backend/database/SUPABASE_STORAGE_SETUP.md
+
+# Keep only the main schema file
+# backend/database/complete_schema.sql (keep this one)

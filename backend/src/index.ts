@@ -12,6 +12,7 @@ import analyticsRoutes from './routes/analyticsRoutes';
 import teamRoutes from './routes/teamRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import authRoutes from './routes/authRoutes';
+import imageRoutes from './routes/imageRoutes';
 import { securityMiddleware, auditLogger } from './middleware/security';
 
 const app = express();
@@ -56,6 +57,7 @@ app.use('/api/v1/admin/orders', orderRoutes);
 app.use('/api/v1/admin/analytics', analyticsRoutes);
 app.use('/api/v1/admin/team', teamRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/images', imageRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
