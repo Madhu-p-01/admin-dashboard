@@ -43,7 +43,7 @@ const navigation = [
     isActive: false
   },
   { 
-    title: 'Discount', 
+    title: 'Discounts', 
     href: '/discounts', 
     icon: () => <Icon name="percent" size={20} className="text-current" />,
     isActive: false

@@ -1,52 +1,23 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '../components/layouts/AdminLayout';
+import { ToastList, ToastItem } from '../components/ui/Toast';
 import { NewDiscountForm } from '../components/forms/NewDiscountForm';
 import { DiscountSearch } from '../components/ui/DiscountSearch';
 import { DiscountFilterDropdown } from '../components/ui/DiscountFilterDropdown';
 import { DiscountSortDropdown } from '../components/ui/DiscountSortDropdown';
 import { ImportExportDiscount } from '../components/ui/ImportExportDiscount';
 
-// Mock discount data matching the image
-const discountsData = [
-  {
-    id: '1',
-    code: 'GET 5',
-    description: '5% off entire order',
-    status: 'Active',
-    usedBy: 20,
-    maxUsage: 100,
-  },
-  {
-    id: '2',
-    code: 'SAVE10',
-    description: '10% off on orders above ₹500',
-    status: 'Active',
-    usedBy: 15,
-    maxUsage: 50,
-  },
-  {
-    id: '3',
-    code: 'FREESHIP',
-    description: 'Free shipping on all orders',
-    status: 'Inactive',
-    usedBy: 5,
-    maxUsage: 30,
-  },
-  {
-    id: '4',
-    code: 'WELCOME',
-    description: '15% off for new customers',
-    status: 'Expired',
-    usedBy: 100,
-    maxUsage: 100,
-  },
-];
+import { getAllDiscounts, DiscountRecord } from '../data/discounts';
+
+const discountsData = getAllDiscounts();
 
 export default function DiscountsPage() {
+  const navigate = useNavigate();
   const [view, setView] = useState<'grid' | 'new-discount'>('grid');
-  const [discounts, setDiscounts] = useState(discountsData);
-  const [filteredDiscounts, setFilteredDiscounts] = useState(discountsData);
-  const [displayedDiscounts, setDisplayedDiscounts] = useState(discountsData);
+  const [discounts, setDiscounts] = useState<DiscountRecord[]>(discountsData);
+  const [filteredDiscounts, setFilteredDiscounts] = useState<DiscountRecord[]>(discountsData);
+  const [displayedDiscounts, setDisplayedDiscounts] = useState<DiscountRecord[]>(discountsData);
 
   // Filter and Sort states
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -55,18 +26,23 @@ export default function DiscountsPage() {
   const [currentSort, setCurrentSort] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
 
   // Notification states
-  const [notifications, setNotifications] = useState<Array<{id: string, message: string, type: 'success' | 'error' | 'info'}>>([]);
-
-  // Notification function
-  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-    const id = Date.now().toString();
-    setNotifications(prev => [...prev, {id, message, type}]);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const pushToast = (message: string, type: ToastItem['type'] = 'info') => {
+    // Avoid stacking identical messages back-to-back
+    setToasts(prev => {
+      if (prev[0] && prev[0].message === message) return prev; 
+      const id = Date.now().toString();
+      const next = [{ id, message, type }, ...prev].slice(0, 5);
+      return next;
+    });
+    // Auto dismiss latest after timeout
     setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    }, 3000);
+      setToasts(prev => prev.filter(t => prev[0]?.message === message ? t.message !== message : t.id !== prev[0]?.id));
+    }, 3500);
   };
 
-  // Filter configuration for discounts
+  // Notification function
+  const showNotification = pushToast; 
   const filterGroups = [
     {
       id: 'status',
@@ -79,7 +55,7 @@ export default function DiscountsPage() {
     }
   ];
 
-  // Sort options for discounts
+ 
   const sortOptions = [
     { id: 'code-asc', label: 'Code (A-Z)', field: 'code', direction: 'asc' as const },
     { id: 'code-desc', label: 'Code (Z-A)', field: 'code', direction: 'desc' as const },
@@ -148,8 +124,22 @@ export default function DiscountsPage() {
   }, [processedDiscounts]);
 
   // Handlers
-  const handleSearchResults = (results: typeof discountsData) => {
-    setFilteredDiscounts(results);
+  const handleSearchResults = (results: any[]) => {
+
+    const normalized: DiscountRecord[] = results.map(r => ({
+      id: r.id,
+      code: r.code,
+      description: r.description,
+      status: r.status,
+      usedBy: r.usedBy,
+      maxUsage: r.maxUsage,
+      createdAt: r.createdAt || new Date().toISOString().split('T')[0],
+      type: r.type,
+      value: r.value,
+      minPurchase: r.minPurchase,
+      maxPurchase: r.maxPurchase
+    }));
+    setFilteredDiscounts(normalized);
   };
 
   const handleApplyFilters = (filters: Record<string, string[]>) => {
@@ -160,21 +150,41 @@ export default function DiscountsPage() {
     setCurrentSort(sort);
   };
 
-  const handleImport = (importedDiscounts: typeof discountsData) => {
-    const newDiscounts = [...discounts, ...importedDiscounts];
+  const handleImport = (importedDiscounts: any[]) => {
+    const normalized: DiscountRecord[] = importedDiscounts.map(r => ({
+      id: r.id || Date.now().toString(),
+      code: r.code,
+      description: r.description,
+      status: r.status || 'Active',
+      usedBy: r.usedBy ?? 0,
+      maxUsage: r.maxUsage ?? 100,
+      createdAt: r.createdAt || new Date().toISOString().split('T')[0],
+      type: r.type,
+      value: r.value,
+      minPurchase: r.minPurchase,
+      maxPurchase: r.maxPurchase
+    }));
+    const newDiscounts = [...discounts, ...normalized];
     setDiscounts(newDiscounts);
     setFilteredDiscounts(newDiscounts);
-    showNotification(`Successfully imported ${importedDiscounts.length} discounts`, 'success');
+    showNotification(`Successfully imported ${normalized.length} discounts`, 'success');
   };
 
   const handleAddDiscount = (newDiscount: any) => {
-    const discount = {
+    const discount: DiscountRecord = {
       id: Date.now().toString(),
       code: newDiscount.discountCode,
-      description: `${newDiscount.discountValue}${newDiscount.discountType === 'Percentage' ? '%' : newDiscount.discountType === 'Fixed Amount' ? '₹' : ''} off`,
+      description: newDiscount.discountType === 'Free Shipping'
+        ? 'Free shipping'
+        : `${newDiscount.discountValue}${newDiscount.discountType === 'Percentage' ? '%' : newDiscount.discountType === 'Fixed Amount' ? '₹' : ''} off`,
       status: 'Active',
       usedBy: 0,
       maxUsage: parseInt(newDiscount.totalUsageLimit || '100', 10),
+      createdAt: new Date().toISOString().split('T')[0],
+      type: newDiscount.discountType,
+      value: newDiscount.discountType === 'Free Shipping' ? undefined : Number(newDiscount.discountValue) || undefined,
+      minPurchase: newDiscount.minPurchaseAmount ? Number(newDiscount.minPurchaseAmount) : undefined,
+      maxPurchase: newDiscount.maxPurchaseAmount ? Number(newDiscount.maxPurchaseAmount) : undefined
     };
     const newDiscounts = [...discounts, discount];
     setDiscounts(newDiscounts);
@@ -192,14 +202,7 @@ export default function DiscountsPage() {
 
   return (
     <AdminLayout title="Discounts">
-      {/* Notification Display */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {notifications.map(notification => (
-          <div key={notification.id} className={`p-4 rounded-lg shadow-lg text-white ${notification.type === 'success' ? 'bg-green-500' : notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`}>
-            {notification.message}
-          </div>
-        ))}
-      </div>
+      <ToastList toasts={toasts} onDismiss={(id) => setToasts(prev => prev.filter(t => t.id !== id))} position="bottom-right" />
 
       <div className="bg-gray-50 min-h-screen">
         {/* Main Container */}
@@ -292,10 +295,10 @@ export default function DiscountsPage() {
                 </div>
 
                 {/* Discount Cards Grid */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="p-6 bg-gray-100">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
                     {displayedDiscounts.map((discount) => (
-                      <div key={discount.id} className="bg-gray-50 border border-gray-200 rounded-lg p-6 cursor-pointer hover:shadow-md transition-shadow">
+                      <div key={discount.id} onClick={() => navigate(`/discount/${discount.id}`)} className="rounded-lg p-6 cursor-pointer hover:shadow-md transition-shadow bg-white group">
                         {/* Card Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div>
@@ -309,17 +312,14 @@ export default function DiscountsPage() {
                         </div>
 
                         {/* Usage Statistics */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="bg-white rounded-lg p-4">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-gray-600">Used by</span>
                             <span className="text-sm font-semibold text-gray-900">{discount.usedBy}</span>
                           </div>
                           {/* Progress Bar */}
                           <div className="w-full bg-gray-200 rounded-full h-2 relative overflow-hidden">
-                            <div
-                              className="bg-blue-500 h-2 rounded-full absolute top-0 left-0 transition-all"
-                              style={{ width: `${Math.round((discount.usedBy / discount.maxUsage) * 100)}%` } as React.CSSProperties}
-                            ></div>
+                            {(() => { const pct = Math.round((discount.usedBy / discount.maxUsage) * 100); const step = Math.min(100, Math.max(0, Math.round(pct/5)*5)); const widthClass: Record<number,string> = {0:'w-0',5:'w-[5%]',10:'w-1/10',15:'w-[15%]',20:'w-1/5',25:'w-1/4',30:'w-[30%]',35:'w-[35%]',40:'w-2/5',45:'w-[45%]',50:'w-1/2',55:'w-[55%]',60:'w-3/5',65:'w-[65%]',70:'w-[70%]',75:'w-3/4',80:'w-4/5',85:'w-[85%]',90:'w-[90%]',95:'w-[95%]',100:'w-full'}; return <div aria-label={`Usage ${pct}%`} className={`bg-blue-500 h-2 rounded-full absolute top-0 left-0 transition-all ${widthClass[step]}`}></div>; })()}
                           </div>
                         </div>
                       </div>

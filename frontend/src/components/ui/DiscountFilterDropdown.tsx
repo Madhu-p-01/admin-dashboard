@@ -33,6 +33,11 @@ export function DiscountFilterDropdown({
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>(appliedFilters);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Update temp filters when applied filters change
+  useEffect(() => {
+    setTempFilters(appliedFilters);
+  }, [appliedFilters]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -68,11 +73,12 @@ export function DiscountFilterDropdown({
 
   const handleApply = () => {
     onApplyFilters(tempFilters);
-    onClose();
+    // Don't close - let user continue filtering
   };
 
   const handleClear = () => {
     setTempFilters({});
+    onApplyFilters({});
   };
 
   const getTotalAppliedFilters = () => {
@@ -85,7 +91,7 @@ export function DiscountFilterDropdown({
     <div
       ref={dropdownRef}
       className={cn(
-        "absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50",
+        "absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-[600px] flex flex-col",
         className
       )}
     >
@@ -101,13 +107,13 @@ export function DiscountFilterDropdown({
         </div>
       </div>
 
-      <div className="max-h-96 overflow-y-auto">
+      <div className="max-h-[400px] overflow-y-auto flex-1">
         {filters.map((group) => (
           <div key={group.id} className="p-4 border-b border-gray-100 last:border-b-0">
             <h4 className="text-sm font-medium text-gray-900 mb-3">{group.label}</h4>
             <div className="space-y-2">
               {group.options.map((option) => (
-                <label key={option.id} className="flex items-center gap-3 cursor-pointer">
+                <label key={option.id} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1 rounded">
                   <input
                     type="checkbox"
                     checked={(tempFilters[group.id] || []).includes(option.id)}
@@ -125,16 +131,16 @@ export function DiscountFilterDropdown({
         ))}
       </div>
 
-      <div className="p-4 border-t border-gray-200 flex items-center justify-between">
+      <div className="p-4 border-t border-gray-200 flex items-center justify-between bg-white flex-shrink-0">
         <span className="text-xs text-gray-500">
           {getTotalAppliedFilters()} filter{getTotalAppliedFilters() !== 1 ? 's' : ''} selected
         </span>
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
           >
-            Cancel
+            Done
           </button>
           <button
             onClick={handleApply}

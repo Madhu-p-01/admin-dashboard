@@ -26,9 +26,60 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
     note: initialData?.note || ''
   });
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    if (field === 'phone') {
+      const numericValue = value.replace(/\D/g, '');
+      const limitedValue = numericValue.slice(0, 10);
+      setFormData(prev => ({ ...prev, [field]: limitedValue }));
+    } else if (field === 'email') {
+      setFormData(prev => ({ ...prev, [field]: value.trim() }));
+    } else if (field === 'firstName' || field === 'lastName') {
+      const nameValue = value.replace(/[^a-zA-Z\s]/g, '');
+      setFormData(prev => ({ ...prev, [field]: nameValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // First Name validation
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    } else if (formData.firstName.trim().length < 2) {
+      newErrors.firstName = 'First name must be at least 2 characters';
+    }
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        newErrors.email = 'Please enter a valid email address';
+      }
+    }
+
+    // Phone validation
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (formData.phone.length !== 10) {
+      newErrors.phone = 'Phone number must be exactly 10 digits';
+    }
+
+    // Language validation
+    if (!formData.language.trim()) {
+      newErrors.language = 'Language is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleCancel = () => {
@@ -37,13 +88,11 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
 
   const handleSaveDraft = () => {
     console.log('Save draft:', formData);
-    // Implement save draft logic
   };
 
   const handleConfirm = () => {
     // Validation for required fields
-    if (!formData.firstName.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.language.trim()) {
-      alert('Please fill all required fields: First Name, Email, Phone Number, and Language.');
+    if (!validateForm()) {
       return;
     }
     console.log('Confirm:', formData);
@@ -58,7 +107,7 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
     email: 'Enter a valid email address for the customer. This field is required.',
     phone: 'Enter the customer\'s phone number. This field is required.',
     language: 'Specify the customer\'s preferred language. This field is required.',
-    note: 'Add any additional notes or comments about the customer.'
+    note: 'Enter the customer\'s address or shipping details.'
   };
 
   return (
@@ -105,8 +154,13 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
               onChange={(e) => handleInputChange('firstName', e.target.value)}
               placeholder="Input your text"
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-4 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.firstName ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
+            {errors.firstName && (
+              <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -148,8 +202,13 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
             onChange={(e) => handleInputChange('email', e.target.value)}
             placeholder="Input your text"
             required
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.email ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
         </div>
 
         {/* Phone Number */}
@@ -192,14 +251,19 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
               </div>
             </div>
             <input
-              type="tel"
+              type="Number"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="Input your text"
               required
-              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`flex-1 px-4 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.phone ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
           </div>
+          {errors.phone && (
+            <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+          )}
         </div>
 
         {/* Language */}
@@ -228,14 +292,19 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
             onChange={(e) => handleInputChange('language', e.target.value)}
             placeholder="Input your text"
             required
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.language ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
+          {errors.language && (
+            <p className="text-red-500 text-xs mt-1">{errors.language}</p>
+          )}
         </div>
 
         {/* Note */}
         <div>
           <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
-            Note:
+            Address:
             <div className="relative">
               <button
                 type="button"
@@ -255,7 +324,7 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
           <textarea
             value={formData.note}
             onChange={(e) => handleInputChange('note', e.target.value)}
-            placeholder="Type some notes"
+            placeholder="Enter address here"
             rows={4}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           />
@@ -269,12 +338,6 @@ export const NewCustomerForm: React.FC<NewCustomerFormProps> = ({ onBack, onSave
           className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
           Cancel
-        </button>
-        <button
-          onClick={handleSaveDraft}
-          className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-        >
-          Save Draft
         </button>
         <button
           onClick={handleConfirm}
